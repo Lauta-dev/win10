@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "notes": "Familias de temas: que variante light/dark corresponde a cada nombre. Se usa al cambiar de modo dark<->light (--gtk auto / --icons auto en scripts/gtk-apply). Si el tema actual no esta en ninguna familia, o la variante no existe instalada, se conserva el tema y solo cambia prefer-dark/color-scheme.",
+  "families": [
+    {
+      "id": "adw-gtk3",
+      "label": "Adwaita GTK3 (objetivo de matugen)",
+      "gtk": { "light": "adw-gtk3", "dark": "adw-gtk3-dark" }
+    },
+    {
+      "id": "fluent",
+      "label": "Fluent",
+      "gtk": {
+        "light": "Fluent-Light",
+        "dark": "Fluent-Dark",
+        "aliases": {
+          "Fluent": "dark",
+          "Fluent-compact": "dark",
+          "Fluent-Dark-compact": "dark",
+          "Fluent-Light-compact": "light"
+        }
+      },
+      "icons": {
+        "light": "Fluent-light",
+        "dark": "Fluent-dark",
+        "aliases": { "Fluent": "dark" }
+      }
+    },
+    {
+      "id": "materia",
+      "label": "Materia (solo variantes -light/-dark; base sin mapear)",
+      "gtk": { "light": "Materia-light", "dark": "Materia-dark" }
+    },
+    {
+      "id": "whitesur",
+      "label": "WhiteSur (GTK solo existe Dark; iconos light/dark)",
+      "gtk": {
+        "dark": "WhiteSur-Dark",
+        "aliases": {
+          "WhiteSur-Dark-hdpi": "dark",
+          "WhiteSur-Dark-xhdpi": "dark"
+        }
+      },
+      "icons": { "light": "WhiteSur-light", "dark": "WhiteSur-dark" }
+    },
+    {
+      "id": "papirus",
+      "label": "Papirus (solo iconos)",
+      "icons": {
+        "light": "Papirus-Light",
+        "dark": "Papirus-Dark",
+        "aliases": { "Papirus": "light" }
+      }
+    },
+    {
+      "id": "fairywren",
+      "label": "FairyWren (solo iconos)",
+      "icons": { "light": "FairyWren_Light", "dark": "FairyWren_Dark" }
+    },
+    {
+      "id": "adwaita",
+      "label": "Adwaita (solo iconos, sin variantes)",
+      "icons": { "light": "Adwaita", "dark": "Adwaita" }
+    }
+  ]
+}

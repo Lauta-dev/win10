@@ -1,0 +1,34 @@
+singleton Config 1.0 Config.qml
+singleton Icons 1.0 Icons.qml
+singleton TaskbarState 1.0 TaskbarState.qml
+singleton SettingsState 1.0 SettingsState.qml
+singleton ColorThemes 1.0 ColorThemes.qml
+
+
+singleton MonitorState 1.0 MonitorState.qml
+singleton AudioState 1.0 AudioState.qml
+singleton MprisState 1.0 MprisState.qml
+singleton MpdConnection 1.0 MpdConnection.qml
+singleton MpdState 1.0 MpdState.qml
+singleton ThemeState 1.0 ThemeState.qml
+singleton WallpaperState 1.0 WallpaperState.qml
+singleton BrightState 1.0 BrightState.qml
+singleton BrightConnection 1.0 BrightConnection.qml
+singleton WifiState 1.0 WifiState.qml
+singleton PomodoroState 1.0 PomodoroState.qml
+singleton PolkitState 1.0 PolkitState.qml
+singleton StartmenuState 1.0 StartmenuState.qml
+singleton AppLaunchState 1.0 AppLaunchState.qml
+singleton OpenAppsState 1.0 OpenAppsState.qml
+singleton ClipboardState 1.0 ClipboardState.qml
+singleton NotesState 1.0 NotesState.qml
+
+singleton KeePassState 1.0 KeePassState.qml
+singleton Style 1.0 Style.qml
+singleton CalculatorState 1.0 CalculatorState.qml
+
+# Clipboard helpers (no singleton)
+ClipEntry 1.0 ClipEntry.qml
+ClipFilter 1.0 ClipFilter.qml
+singleton DirBrowserState 1.0 DirBrowserState.qml
+ClipProcesses 1.0 ClipProcesses.qml

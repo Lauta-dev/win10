@@ -1,0 +1,243 @@
+{
+  "comment": "Presets de temas para la shell. Cada preset trae semillas dark+light; scripts/shell-theme deriva la paleta md3 completa, escribe ~/.cache/matugen-active.json (lo que lee Style) y aplica el GTK preferido si esta instalado (si no, auto). Sin magic strings en QML: la UI lee este archivo.",
+  "themes": [
+    {
+      "id": "matugen",
+      "label": "Matugen",
+      "hint": "Wallpaper",
+      "gtk": [
+        "auto"
+      ],
+      "seeds": null
+    },
+    {
+      "id": "chromeos",
+      "label": "ChromeOS",
+      "hint": "Gris + azul Google",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#8AB4F8",
+        "secondary": "#78D9EC",
+        "tertiary": "#C58AF9",
+        "background": "#141414",
+        "foreground": "#E8EAED"
+      },
+      "light": {
+        "primary": "#1A73E8",
+        "secondary": "#007B83",
+        "tertiary": "#7C4DFF",
+        "background": "#FFFFFF",
+        "foreground": "#202124"
+      }
+    },
+    {
+      "id": "windows",
+      "label": "Windows",
+      "hint": "Azul sobrio",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#4CC2FF",
+        "secondary": "#A8C7FA",
+        "tertiary": "#7FBA00",
+        "background": "#202020",
+        "foreground": "#FFFFFF"
+      },
+      "light": {
+        "primary": "#0067C0",
+        "secondary": "#4F6BED",
+        "tertiary": "#038387",
+        "background": "#F3F3F3",
+        "foreground": "#1B1B1B"
+      },
+      "hidden": true
+    },
+    {
+      "id": "nord",
+      "label": "Nord",
+      "hint": "Nórdico ártico",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#88C0D0",
+        "secondary": "#81A1C1",
+        "tertiary": "#A3BE8C",
+        "background": "#2E3440",
+        "foreground": "#ECEFF4"
+      },
+      "light": {
+        "primary": "#3D7EA6",
+        "secondary": "#4C566A",
+        "tertiary": "#6B8E6B",
+        "background": "#ECEFF4",
+        "foreground": "#2E3440"
+      },
+      "hidden": true
+    },
+    {
+      "id": "dracula",
+      "label": "Dracula",
+      "hint": "Morado oscuro",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#BD93F9",
+        "secondary": "#8BE9FD",
+        "tertiary": "#50FA7B",
+        "background": "#282A36",
+        "foreground": "#F8F8F2"
+      },
+      "light": {
+        "primary": "#6C4FA1",
+        "secondary": "#1E7FA8",
+        "tertiary": "#2E9E5B",
+        "background": "#F8F8F2",
+        "foreground": "#282A36"
+      },
+      "hidden": true
+    },
+    {
+      "id": "catppuccin-mocha",
+      "label": "Catppuccin",
+      "hint": "Mocha / Latte",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#89B4FA",
+        "secondary": "#CBA6F7",
+        "tertiary": "#94E2D5",
+        "background": "#1E1E2E",
+        "foreground": "#CDD6F4"
+      },
+      "light": {
+        "primary": "#1E66F5",
+        "secondary": "#8839EF",
+        "tertiary": "#179299",
+        "background": "#EFF1F5",
+        "foreground": "#4C4F69"
+      },
+      "hidden": true
+    },
+    {
+      "id": "gruvbox",
+      "label": "Gruvbox",
+      "hint": "Retro cálido",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#FABD2F",
+        "secondary": "#FE8019",
+        "tertiary": "#8EC07C",
+        "background": "#282828",
+        "foreground": "#EBDBB2"
+      },
+      "light": {
+        "primary": "#B57614",
+        "secondary": "#AF3A03",
+        "tertiary": "#427B58",
+        "background": "#FBF1C7",
+        "foreground": "#3C3836"
+      },
+      "hidden": true
+    },
+    {
+      "id": "tokyo-night",
+      "label": "Tokyo Night",
+      "hint": "Neón nocturno",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#7AA2F7",
+        "secondary": "#BB9AF7",
+        "tertiary": "#7DCFFF",
+        "background": "#1A1B26",
+        "foreground": "#C0CAF5"
+      },
+      "light": {
+        "primary": "#2E7DE9",
+        "secondary": "#9854F1",
+        "tertiary": "#07879B",
+        "background": "#E1E2E7",
+        "foreground": "#343B58"
+      },
+      "hidden": true
+    },
+    {
+      "id": "everforest",
+      "label": "Everforest",
+      "hint": "Verde bosque",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#A7C080",
+        "secondary": "#7FBBB3",
+        "tertiary": "#E69875",
+        "background": "#2B3339",
+        "foreground": "#D3C6AA"
+      },
+      "light": {
+        "primary": "#6F8E00",
+        "secondary": "#2E8C6A",
+        "tertiary": "#C4552A",
+        "background": "#FFFBEF",
+        "foreground": "#5C6A72"
+      },
+      "hidden": true
+    },
+    {
+      "id": "rose-pine",
+      "label": "Rosé Pine",
+      "hint": "Main / Dawn",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#EBBCBA",
+        "secondary": "#C4A7E7",
+        "tertiary": "#9CCFD8",
+        "background": "#191724",
+        "foreground": "#E0DEF4"
+      },
+      "light": {
+        "primary": "#D7827E",
+        "secondary": "#907AA9",
+        "tertiary": "#56949F",
+        "background": "#FAF4ED",
+        "foreground": "#575279"
+      },
+      "hidden": true
+    },
+    {
+      "id": "solarized",
+      "label": "Solarized",
+      "hint": "Clásico preciso",
+      "gtk": [
+        "Fluent"
+      ],
+      "dark": {
+        "primary": "#268BD2",
+        "secondary": "#2AA198",
+        "tertiary": "#B58900",
+        "background": "#002B36",
+        "foreground": "#839496"
+      },
+      "light": {
+        "primary": "#1E6FA0",
+        "secondary": "#1F7A74",
+        "tertiary": "#8A6D00",
+        "background": "#FDF6E3",
+        "foreground": "#586E75"
+      },
+      "hidden": true
+    }
+  ]
+}

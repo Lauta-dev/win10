@@ -1,0 +1,5 @@
+{
+  "name": "win10-taskbar",
+  "description": "Windows 10 style taskbar for labwc / Wayland",
+  "version": "1.0.0"
+}

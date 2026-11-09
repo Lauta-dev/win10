@@ -1,0 +1,30 @@
+AppIcon 1.0 AppIcon.qml
+AppTextInput 1.0 AppTextInput.qml
+NoteTextArea 1.0 NoteTextArea.qml
+Badge 1.0 Badge.qml
+AutoLazyLoader 1.0 AutoLazyLoader.qml
+DismissOverlay 1.0 DismissOverlay.qml
+WindowCountBadge 1.0 WindowCountBadge.qml
+SectionLabel 1.0 SectionLabel.qml
+SegmentedControl 1.0 SegmentedControl.qml
+ToggleSwitch 1.0 ToggleSwitch.qml
+PanelList 1.0 PanelList.qml
+SmartSearchInput   1.0 SmartSearchInput.qml
+PillButton 1.0 PillButton.qml
+SeekBar 1.0 SeekBar.qml
+ValueSlider 1.0 ValueSlider.qml
+MprisControl 1.0 MprisControl.qml
+MonitorSection 1.0 MonitorSection.qml
+ButtonRow 1.0 ButtonRow.qml
+
+
+Mouse 1.0 Mouse.qml
+Drawer 1.0 Drawer.qml
+PopupDrawer 1.0 PopupDrawer.qml
+PopupShell 1.0 PopupShell.qml
+Header 1.0 Header.qml
+EmptyState 1.0 EmptyState.qml
+RoundedImage 1.0 RoundedImage.qml
+ConvexPopupShape 1.0 ConvexPopupShape.qml
+WipePopupShell 1.0 WipePopupShell.qml
+PanelPopupHost 1.0 PanelPopupHost.qml

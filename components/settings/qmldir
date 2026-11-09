@@ -1,0 +1,5 @@
+SettingsTabAppearance 1.0 SettingsTabAppearance.qml
+SettingsTabMonitors 1.0 SettingsTabMonitors.qml
+TabTransition 1.0 TabTransition.qml
+SettingsCombo 1.0 SettingsCombo.qml
+DirBrowser 1.0 DirBrowser.qml

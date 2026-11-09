@@ -1,0 +1,10 @@
+# ── Shell root ────────────────────────────────────────────────
+Taskbar 1.0 Taskbar.qml
+
+# ── Task list & groups ────────────────────────────────────────
+TaskList 1.0 groups/TaskList.qml
+TaskButton 1.0 groups/TaskButton.qml
+
+# ── Jump list (context menu) ──────────────────────────────────
+JumpList 1.0 jumplist/JumpList.qml
+JumpListItem 1.0 jumplist/JumpListItem.qml

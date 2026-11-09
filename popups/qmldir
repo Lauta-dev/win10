@@ -1,0 +1,11 @@
+LauncherPopup 1.0 LauncherPopup.qml
+
+SettingsPopup 1.0 SettingsPopup.qml
+HubPopup 1.0 HubPopup.qml
+ControlCenterNew 1.0 ControlCenterNew.qml
+MusicPopup 1.0 MusicPopup.qml
+
+OsdSliderPopup 1.0 OsdSliderPopup.qml
+PolkitPopup 1.0 PolkitPopup.qml
+NotesSidebar 1.0 NotesSidebar.qml
+
