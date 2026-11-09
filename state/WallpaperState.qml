@@ -131,13 +131,11 @@ Singleton {
         command: ["sh", "-c", dirCheckProc._cmd]
         running: false
         onRunningChanged: {
-            if (!running && exitCode === 0) {
                 WallpaperState.wallpaperList = []
                 WallpaperState.wallpaperDir = dirCheckProc._dir
                 SettingsState.markDirty()
                 WallpaperState._wpLoaded = false
                 if (dirCheckProc._dir !== "") WallpaperState.wallpapersProc.load(dirCheckProc._dir)
-            }
         }
     }
 

@@ -38,12 +38,15 @@ Rectangle {
     property var    entries: []
 
     // ── Methods ────────────────────────────────────────────────────
-    function open(startPath) {
+        function open(startPath) {
         if (startPath === undefined) startPath = "~"
         root.entries = []
-        DirBrowserState.listDir(startPath, root.mode, root.showHidden)
+        root.navigate(startPath)
         root.visible = true
         root.opacity = 1
+    }
+    function navigate(path) {
+        DirBrowserState.listDir(path, root.mode, root.showHidden)
     }
 
     function close() {
@@ -51,9 +54,9 @@ Rectangle {
         root.visible = false
     }
 
-    function goUp() {
+        function goUp() {
         if (currentPath === "" || currentPath === "/") return
-        DirBrowserState.listDir(currentPath.substring(0, currentPath.lastIndexOf("/")) || "/", root.mode, root.showHidden)
+        root.navigate(currentPath.substring(0, currentPath.lastIndexOf("/")) || "/")
     }
 
     // ── Conexión con el singleton de listado ─────────────────────
@@ -129,10 +132,10 @@ Rectangle {
                     color: root.showHidden ? Style.primary : Style.on_surface
                 }
                 HoverHandler { id: dbHiddenH }
-                TapHandler {
+                                TapHandler {
                     onTapped: {
                         root.showHidden = !root.showHidden
-                        browserProc.listDir(root.currentPath)
+                        root.navigate(root.currentPath)
                     }
                 }
             }
@@ -307,9 +310,9 @@ Rectangle {
                 Mouse {
                     id: dbCellMouse
                     anchors.fill: parent
-                    onClicked: {
+                                        onClicked: {
                         if (dbCell.isImage || dbCell.isMd) root.fileSelected(modelData.path)
-                        else browserProc.listDir(modelData.path)
+                        else root.navigate(modelData.path)
                     }
                 }
             }

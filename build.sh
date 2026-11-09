@@ -34,4 +34,7 @@ cd resolve-icons && go build -o ../../bin/resolve-icons; cd ..
 echo "Construyendo qsipc..."
 cd qsipc && go build -o ../../bin/qsipc; cd ..
 
+echo "Construyendo wp-helper"
+cd wp-helper && go build -o ../../bin/wp-helper; cd ..
+
 echo "¡Todos los binarios construidos!"

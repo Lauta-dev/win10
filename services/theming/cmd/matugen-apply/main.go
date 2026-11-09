@@ -19,10 +19,6 @@ func main() {
 	schemeType := parsed.Opt("type", "scheme-tonal-spot")
 	mode := parsed.Opt("mode", gtk.ModeDark)
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fatal(err)
-	}
 	exe, err := os.Executable()
 	if err != nil {
 		fatal(err)
@@ -53,10 +49,16 @@ func main() {
 	if err := matugen.Run(); err != nil {
 		fmt.Println("⚠ matugen falló")
 	}
+	fmt.Println("Antes de aplicer gkt")
 
 	// Publicar md3 para Quickshell.
-	configDir, _ := os.UserConfigDir()
-	win10Dir := filepath.Join(configDir, "win10")	if err := os.MkdirAll(win10Dir, 0755); err != nil {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		fatal(err)
+	}
+		
+	win10Dir := filepath.Join(configDir, "win10")
+	if err := os.MkdirAll(win10Dir, 0755); err != nil {
 		fatal(err)
 	}
 	src := filepath.Join(win10Dir, "theme-md3.json")
@@ -65,6 +67,9 @@ func main() {
 			fatal(err)
 		}
 	}
+
+
+	
 
 	// adw-gtk3 publica dos variantes: adw-gtk3 (light) y adw-gtk3-dark.
 	// "adw-gtk3-light" NO existe: setearlo deja a GTK sin tema.

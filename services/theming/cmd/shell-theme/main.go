@@ -77,8 +77,12 @@ func main() {
 	}
 
 	// Escritura atomica: Style observa el archivo con watch.
-	configDir, _ := os.UserConfigDir()
-	win10Dir := filepath.Join(configDir, "win10")	if err := os.MkdirAll(win10Dir, 0755); err != nil {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		fatal(err)
+	}
+	win10Dir := filepath.Join(configDir, "win10")
+	if err := os.MkdirAll(win10Dir, 0755); err != nil {
 		fatal(err)
 	}
 	activePath := filepath.Join(win10Dir, "theme-active.json")
