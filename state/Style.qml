@@ -1,7 +1,7 @@
 // Style.qml — Fuente única de verdad visual.
 //
 // DE DÓNDE VIENEN LOS COLORES:
-//   wallpaper → bin/matugen-apply → ~/.cache/matugen-active.json
+//   wallpaper → bin/matugen-apply → ~/.config/win10/theme-active.json
 //   Style lee ese JSON y expone cada rol MD3 tal cual lo genera matugen.
 //   Sin paletas propias, sin remaps.
 //
@@ -25,7 +25,7 @@ Singleton {
 
     FileView {
         id: matugenFile
-        path: Quickshell.env("HOME") + "/.cache/matugen-active.json"
+        path: Quickshell.env("HOME") + "/.config/win10/theme-active.json"
         watchChanges: true
         preload: true
         onFileChanged: reloadTimer.restart()

@@ -18,7 +18,7 @@ Singleton {
     property bool   _wpLoaded:        false
 
     readonly property string _scripts: Qt.resolvedUrl("../bin/").toString().replace("file://", "")
-    readonly property string _thumbCacheFile: Quickshell.env("HOME") + "/.cache/labwc-b/thumbcache.json"
+    readonly property string _thumbCacheFile: Quickshell.env("HOME") + "/.cache/win10/thumbcache.json"
 
     // ── Exposición de procesos hijos ─────────────────────────────
     property alias wallpaperRestoreProc: wallpaperRestoreProc
@@ -160,7 +160,7 @@ Singleton {
         running: false
         onRunningChanged: {
             if (running) {
-                var dir = Quickshell.env("HOME") + "/.cache/labwc-b"
+                var dir = Quickshell.env("HOME") + "/.cache/win10"
                 _cmd = "mkdir -p '" + dir + "' && printf '%s' '" + _json.replace(/'/g, "'\\''") + "' > '" + dir + "/thumbcache.json'"
             }
         }
@@ -213,7 +213,7 @@ Singleton {
     Process {
         id: thumbCacheLoadProc
         property string _buf: ""
-        command: ["sh", "-c", "cat '" + Quickshell.env("HOME") + "/.cache/labwc-b/thumbcache.json' 2>/dev/null"]
+        command: ["sh", "-c", "cat '" + Quickshell.env("HOME") + "/.cache/win10/thumbcache.json' 2>/dev/null"]
         running: false
         stdout: SplitParser { onRead: (line) => { thumbCacheLoadProc._buf += line } }
         onRunningChanged: {

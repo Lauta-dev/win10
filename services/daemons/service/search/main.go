@@ -100,13 +100,13 @@ func run(root string, maxEntries, maxResults int, cachePath string, refreshAfter
 	return 0
 }
 
-// defaultCachePath devuelve $XDG_CACHE_HOME/qs-fileindex.txt.
+// defaultCachePath devuelve $XDG_CACHE_HOME/win10/fileindex.txt.
 func defaultCachePath() string {
 	dir, err := os.UserCacheDir()
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(dir, "qs-fileindex.txt")
+	return filepath.Join(dir, "win10", "fileindex.txt")
 }
 
 // Main es el entry del servicio dentro del binario unificado daemons.

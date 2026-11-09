@@ -17,14 +17,14 @@ Singleton {
 
     Process {
         id: mkdirProc
-        command: ["mkdir", "-p", Quickshell.env("HOME") + "/.cache/qs7"]
+        command: ["mkdir", "-p", Quickshell.env("HOME") + "/.config/win10"]
         running: true
         onExited: fileView.reload()
     }
 
     FileView {
         id: fileView
-        path: Quickshell.env("HOME") + "/.cache/qs7/notes.txt"
+        path: Quickshell.env("HOME") + "/.config/win10/notes.txt"
         watchChanges: true
         onFileChanged: { if (root._ownWrite) { root._ownWrite = false; return } reload() }
         onLoaded: function() {

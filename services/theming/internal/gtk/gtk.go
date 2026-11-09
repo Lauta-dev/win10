@@ -304,9 +304,11 @@ func abs(f float64) float64 {
 	return f
 }
 
-// md3Primary lee el primario del modo desde qs-matugen-md3.json.
+// md3Primary lee el primario del modo desde theme-md3.json.
 func md3Primary(home, mode string) string {
-	raw, err := os.ReadFile(filepath.Join(home, ".cache", "qs-matugen-md3.json"))
+	configDir, _ := os.UserConfigDir()
+	win10Dir := filepath.Join(configDir, "win10")
+	raw, err := os.ReadFile(filepath.Join(win10Dir, "theme-md3.json"))
 	if err != nil {
 		return ""
 	}

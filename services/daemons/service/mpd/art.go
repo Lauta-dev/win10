@@ -17,6 +17,7 @@ import (
 	"strings"
 )
 
+// cacheDir devuelve $XDG_CACHE_HOME/win10/mpd-art.
 func cacheDir() string {
 	base := os.Getenv("XDG_CACHE_HOME")
 	if base == "" {
@@ -26,7 +27,7 @@ func cacheDir() string {
 		}
 		base = filepath.Join(home, ".cache")
 	}
-	dir := filepath.Join(base, "qs-mpd-art")
+	dir := filepath.Join(base, "win10", "mpd-art")
 	_ = os.MkdirAll(dir, 0o755)
 	return dir
 }

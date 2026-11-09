@@ -48,7 +48,7 @@ Singleton {
     // ── FileView — I/O nativo ─────────────────────────────────────
     FileView {
         id: store
-        path: Quickshell.env("HOME") + "/.config/qs-settings.json"
+        path: Quickshell.env("HOME") + "/.config/win10/settings.json"
         atomicWrites: true
 
         onLoaded: {
@@ -146,10 +146,38 @@ Singleton {
                 iconMap:            ThemeState.iconMap,
                 radiusPreset:       radiusPreset,
                 radiusCustom:       radiusCustom,
-                recentApps:         recentApps
+                recentApps:         recentApps,
+                totalSessions:     PomodoroState.totalSessions,
+                sessionsDate:      PomodoroState.sessionsDate,
+                workDuration:      PomodoroState.workDuration,
+                shortBreakDuration: PomodoroState.shortBreakDuration,
+                longBreakDuration:  PomodoroState.longBreakDuration
             })
             store.setText(data)
         }
+    }
+
+    // ── Pomodoro settings via SettingsState (no file propio)
+    property string _pomodoroSettings: ""
+
+    function getPomodoroSettings() {
+        return _pomodoroSettings
+    }
+
+    function setPomodoroSettings(raw) {
+        _pomodoroSettings = raw
+        var obj = {}
+        try {
+            obj = JSON.parse(raw)
+        } catch(e) {
+            return
+        }
+        PomodoroState.totalSessions = obj.totalSessions !== undefined ? obj.totalSessions : 0
+        PomodoroState.sessionsDate = obj.sessionsDate || ""
+        PomodoroState.workDuration = obj.workDuration || 25 * 60
+        PomodoroState.shortBreakDuration = obj.shortBreakDuration || 5 * 60
+        PomodoroState.longBreakDuration = obj.longBreakDuration || 15 * 60
+        markDirty()
     }
 
     // wallpaperRestoreProc movido a WallpaperState

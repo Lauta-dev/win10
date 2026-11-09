@@ -55,9 +55,13 @@ func main() {
 	}
 
 	// Publicar md3 para Quickshell.
-	src := filepath.Join(home, ".cache", "qs-matugen-md3.json")
+	configDir, _ := os.UserConfigDir()
+	win10Dir := filepath.Join(configDir, "win10")	if err := os.MkdirAll(win10Dir, 0755); err != nil {
+		fatal(err)
+	}
+	src := filepath.Join(win10Dir, "theme-md3.json")
 	if raw, err := os.ReadFile(src); err == nil {
-		if err := md3.AtomicWrite(filepath.Join(home, ".cache", "matugen-active.json"), raw); err != nil {
+		if err := md3.AtomicWrite(filepath.Join(win10Dir, "theme-active.json"), raw); err != nil {
 			fatal(err)
 		}
 	}

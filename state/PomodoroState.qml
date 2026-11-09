@@ -153,11 +153,11 @@ Singleton {
             shortBreakDuration: root.shortBreakDuration,
             longBreakDuration: root.longBreakDuration
         })
-        pomodoroFile.setText(data)
+        SettingsState.setPomodoroSettings(data)
     }
 
     function _load() {
-        var raw = pomodoroFile.text()
+        var raw = SettingsState.getPomodoroSettings()
         if (!raw || raw.trim() === "") return
         try {
             var obj = JSON.parse(raw)
@@ -170,11 +170,5 @@ Singleton {
         root._resetDaily()
     }
 
-    FileView {
-        id: pomodoroFile
-        path: Quickshell.env("HOME") + "/.config/qs-pomodoro.json"
-        atomicWrites: true
-        onLoaded: root._load()
-        onLoadFailed: root._resetDaily()
-    }
+    
 }
