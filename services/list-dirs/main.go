@@ -83,12 +83,12 @@ func main() {
 			showHidden = true
 		case "--hide-hidden":
 			showHidden = false
-			default:
-				if strings.HasPrefix(a, "--mode=") {
-					mode = strings.TrimPrefix(a, "--mode=")
-				} else if path == "" && !strings.HasPrefix(a, "-") {
-					path = a
-				}
+		default:
+			if strings.HasPrefix(a, "--mode=") {
+				mode = strings.TrimPrefix(a, "--mode=")
+			} else if path == "" && !strings.HasPrefix(a, "-") {
+				path = a
+			}
 		}
 	}
 	if path == "" {
@@ -181,7 +181,6 @@ func main() {
 				entries = append(entries, entry{Name: it.name, Path: it.path, IsParent: false, IsMd: boolPtr(true)})
 			}
 		}
-	}
 	}
 
 	out, _ := json.Marshal(map[string]any{"path": realp, "entries": entries})

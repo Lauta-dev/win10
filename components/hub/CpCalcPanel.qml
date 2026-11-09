@@ -2,7 +2,7 @@ import ".."
 import "../../state"
 // CpCalcPanel.qml — Calculadora del modo "calc" del Command Palette.
 // Un solo input fijo abajo + Display readout arriba (resultado en vivo).
-// Motor: CalculatorState (async, binario scripts/calc-eval). El Display
+// Motor: CalculatorState (async, binario bin/calc-eval). El Display
 // es reactivo: "…" mientras busy, resultado o error al llegar.
 import QtQuick
 import QtQuick.Layouts

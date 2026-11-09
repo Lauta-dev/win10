@@ -123,17 +123,17 @@ Vista `Item` del panel `"controlcenter"` en `PanelPopupHost` (posición right). 
 `Row` con:
 1. Repeater sobre `SystemTray.items` → TrayIconPill
 
-## scripts/ — Scripts auxiliares
+## services/ — Módulos Go
 
 Todos via `Process{}` — nunca síncronos.
 
 | Script | Salida |
 |---|---|---|
+| daemon | Bridge Go MPD (`services/daemons/service/mpd/`, cmd+idle, NDJSON stdio): MpdConnection reenvía push a la UI |
 | resolve-icons | JSON { appId: "/path/icon.svg" } |
 | wp-helper | scan de wallpapers + path thumbnail ~/.cache/qs-wallpapers/<md5>.jpg |
 | list-monitors | JSON con monitores y modos (via wlr-randr --json) |
 | list-dirs | JSON {path, entries[]} para DirBrowser (vía `DirBrowserState`) |
-| mpd-daemon | Bridge Go MPD (`scripts/mpd/`, cmd+idle, NDJSON stdio): MpdConnection reenvía push a la UI |
 
 
 ## Dependencias entre archivos

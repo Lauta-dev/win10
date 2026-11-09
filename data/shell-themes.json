@@ -1,5 +1,5 @@
 {
-  "comment": "Presets de temas para la shell. Cada preset trae semillas dark+light; scripts/shell-theme deriva la paleta md3 completa, escribe ~/.cache/matugen-active.json (lo que lee Style) y aplica el GTK preferido si esta instalado (si no, auto). Sin magic strings en QML: la UI lee este archivo.",
+  "comment": "Presets de temas para la shell. Cada preset trae semillas dark+light; bin/shell-theme deriva la paleta md3 completa, escribe ~/.cache/matugen-active.json (lo que lee Style) y aplica el GTK preferido si esta instalado (si no, auto). Sin magic strings en QML: la UI lee este archivo.",
   "themes": [
     {
       "id": "matugen",

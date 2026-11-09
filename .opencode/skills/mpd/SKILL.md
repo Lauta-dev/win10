@@ -9,7 +9,7 @@ description: Use when working with MPD (Music Player Daemon). Covers installatio
 
 **Music Player Daemon (MPD)** es un servidor de música ligero con arquitectura cliente-servidor. Reproduce archivos de audio, organiza playlists y mantiene una base de datos musical, todo con mínimos recursos. Se controla por red mediante el protocolo MPD (puerto 6600 por defecto).
 
-> Nota del proyecto: todo el control de MPD pasa por el daemon Go (`scripts/mpd-daemon`). No usar clientes CLI externos.
+> Nota del proyecto: todo el control de MPD pasa por el daemon Go (`bin/daemon mpd run`). No usar clientes CLI externos.
 
 ## Instalación
 

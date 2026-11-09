@@ -301,13 +301,13 @@ Singleton {
 
         var mode = dark ? "dark" : "light"
         if (ThemeState.colorTheme === "matugen" && WallpaperState.wallpaper) {
-            var script = Qt.resolvedUrl("../scripts/matugen-apply").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/matugen-apply").toString().replace("file://", "")
             var wp = WallpaperState.wallpaper.replace(/'/g, "'\\''")
             _darkModeProc._cmd = "'" + script + "' '" + wp + "' --type " + WallpaperState.matugenSchemeType + " --mode " + mode
         } else {
             // Sin matugen: seguir la variante de la familia (auto) para gtk e iconos.
             // Qt va por plataforma gtk3: lo cubre gtk-apply, sin qt5ct/qt6ct.
-            var gtkScript = Qt.resolvedUrl("../scripts/gtk-apply").toString().replace("file://", "")
+            var gtkScript = Qt.resolvedUrl("../bin/gtk-apply").toString().replace("file://", "")
             _darkModeProc._cmd = "'" + gtkScript + "' --gtk auto --icons auto --mode " + mode
         }
         _darkModeProc.running = false

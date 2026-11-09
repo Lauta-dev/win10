@@ -1,4 +1,4 @@
-Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS Material You para **labwc** (Wayland, `wlr-layer-shell`). Stack: QuickShell + QML (Qt 6.7+), Go 1.24 (`scripts/`).
+Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS Material You para **labwc** (Wayland, `wlr-layer-shell`). Stack: QuickShell + QML (Qt 6.7+), Go 1.24 (`services/`).
 
 ## Cómo buscar archivos (leer primero)
 
@@ -37,7 +37,7 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 ### IPC (`ipc/`, un archivo por target; no renombrar targets)
 `AppMenuIpc` (command-palette), `BrightIpc` (bright), `ClipboardIpc` (clipboard), `MpdIpc` (mpd), `NotesIpc` (notes), `PowerIpc` (power), `VolumeIpc` (vol)
 
-### Go (`scripts/`, cada carpeta es un módulo propio)
+### Go (`services/`, cada carpeta es un módulo propio)
 `daemons/` (servicios bright, keepass, mpd, search), `calc/`, `qsipc/`, `theming/` (gtk-apply, shell-theme, matugen-apply)
 
 ## Comandos (usarlos para verificar)
@@ -48,7 +48,7 @@ qmllint -i . -i ./state -i ./components -i ./popups -i ./taskbar \
   -i ./widgets -i ./tray -i ./ipc <archivo.qml>
 
 # Go: vet + tests por módulo
-go vet ./... && go test ./...   # dentro de scripts/<modulo>/
+go vet ./... && go test ./...   # dentro de services/<modulo>/
 
 # IPC en vivo (la shell debe estar corriendo)
 qs ipc call command-palette toggle
@@ -61,7 +61,7 @@ qs ipc call clipboard toggle
 - `features`: clipboard, AppMenu (`>b`, `>ia`, `>sf`), notas, WiFi, MPD. Cargar solo si la tarea toca esa feature.
 - `qs-*` (core, widgets, services, wayland, windowmanager, io, networking, dbusmenu, bluetooth): referencia de APIs de Quickshell; consultar el que corresponda en vez de adivinar firmas.
 - `qs-animations`: animaciones de popups. `mpd`: protocolo MPD. `.agents/skills/qt-qml`: buenas prácticas QML.
-- Cada módulo Go de `scripts/` tiene su `doc.md` (protocolo y comandos): leer ese en vez de explorar.
+- Cada módulo Go de `services/` tiene su `doc.md` (protocolo y comandos): leer ese en vez de explorar.
 
 ## Estilo
 

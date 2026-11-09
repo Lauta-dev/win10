@@ -17,7 +17,7 @@ Windows 10 Taskbar estilo ChromeOS Material You construida en **QuickShell + QML
 | `state/TaskbarState`, `Config`, `SettingsState`, `ColorThemes` | state |
 | Lanzar apps, watchdog de apertura, match fuzzy, pin smart | state |
 | Flujo de datos, arranque, persistencia, dark mode | state |
-| `components/`, `taskbar/`, `widgets/`, `popups/`, `tray/`, `scripts/` | components |
+| `components/`, `taskbar/`, `widgets/`, `popups/`, `tray/`, `services/`, `bin/` | components |
 | `PanelList`, `ClipItemDelegate`, `AppIcon`, `SegmentedControl`, etc. | components |
 | Sistema de portapapeles | features |
 | Sistema de notificaciones | features |

@@ -217,7 +217,7 @@ Singleton {
         id: daemonProc
         stdinEnabled: true
         command: {
-            var bin = Qt.resolvedUrl("../scripts/daemon").toString().replace("file://", "")
+            var bin = Qt.resolvedUrl("../bin/daemon").toString().replace("file://", "")
             return [bin, "mpd", "run"]
         }
         running: false

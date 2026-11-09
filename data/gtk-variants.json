@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "Familias de temas: que variante light/dark corresponde a cada nombre. Se usa al cambiar de modo dark<->light (--gtk auto / --icons auto en scripts/gtk-apply). Si el tema actual no esta en ninguna familia, o la variante no existe instalada, se conserva el tema y solo cambia prefer-dark/color-scheme.",
+  "notes": "Familias de temas: que variante light/dark corresponde a cada nombre. Se usa al cambiar de modo dark<->light (--gtk auto / --icons auto en bin/gtk-apply). Si el tema actual no esta en ninguna familia, o la variante no existe instalada, se conserva el tema y solo cambia prefer-dark/color-scheme.",
   "families": [
     {
       "id": "adw-gtk3",

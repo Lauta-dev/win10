@@ -81,7 +81,7 @@ func main() {
 	}
 	sizes := []string{"48x48", "64x64", "32x32", "scalable", "24x24", "22x22", "16x16"}
 	cats := []string{"apps", "applications"}
-	exs := map[string]bool{".svg": true, ".png": true, ".xpm": true}
+	exts := map[string]bool{".svg": true, ".png": true, ".xpm": true}
 
 	iconIndex := map[string]string{}
 	addDir := func(d string) {
@@ -95,7 +95,7 @@ func main() {
 			}
 			name := e.Name()
 			ext := strings.ToLower(filepath.Ext(name))
-			if !exs[ext] {
+			if !exts[ext] {
 				continue
 			}
 			key := strings.ToLower(strings.TrimSuffix(name, filepath.Ext(name)))
@@ -126,19 +126,18 @@ func main() {
 			}
 		}
 	}
-	}
 
 	findIcon := func(name string) string {
-	if name == "" {
-		return ""
-	}
-	if strings.HasPrefix(name, "/") {
-		if st, err := os.Stat(name); err == nil && !st.IsDir() {
-			return name
+		if name == "" {
+			return ""
 		}
-		return ""
-	}
-	return iconIndex[strings.ToLower(name)]
+		if strings.HasPrefix(name, "/") {
+			if st, err := os.Stat(name); err == nil && !st.IsDir() {
+				return name
+			}
+			return ""
+		}
+		return iconIndex[strings.ToLower(name)]
 	}
 
 	variants := func(appID, iconName string) []string {
@@ -211,29 +210,27 @@ func main() {
 					inMain = false
 					continue
 				}
-					if inMain && strings.HasPrefix(line, "Icon=") {
-						iconName = strings.TrimSpace(strings.TrimPrefix(line, "Icon="))
-						break
-					}
+				if inMain && strings.HasPrefix(line, "Icon=") {
+					iconName = strings.TrimSpace(strings.TrimPrefix(line, "Icon="))
+					break
 				}
-				resolved := findIcon(iconName)
-				if resolved == "" {
-					resolved = findIcon(appID)
-				}
-				if resolved == "" {
-					return nil
-				}
-				for _, key := range variants(appID, iconName) {
-					if key != "" {
-						if _, ok := result[key]; !ok {
-							iconIndex[key] = resolved
-						}
+			}
+			resolved := findIcon(iconName)
+			if resolved == "" {
+				resolved = findIcon(appID)
+			}
+			if resolved == "" {
+				return nil
+			}
+			for _, key := range variants(appID, iconName) {
+				if key != "" {
+					if _, ok := result[key]; !ok {
+						result[key] = resolved
 					}
 				}
 			}
 			return nil
 		})
-	}
 	}
 
 	enc, _ := json.Marshal(result)

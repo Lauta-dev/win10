@@ -87,20 +87,20 @@ func main() {
 					})
 				}
 				sort.Slice(modes, func(a, b int) bool {
-						pa, pb := modes[a], modes[b]
-						// preferred/current primero, luego resolución desc, refresh desc
-						if pa.Preferred != pb.Preferred {
-							return pa.Preferred && !pb.Preferred
-						}
-						if pa.Current != pb.Current {
-							return pa.Current && !pb.Current
-						}
-						ra, rb := pa.Width*pa.Height, pb.Width*pb.Height
-						if ra != rb {
-							return ra > rb
-						}
-						return pa.Refresh > pb.Refresh
-					})
+					pa, pb := modes[a], modes[b]
+					// preferred/current primero, luego resolución desc, refresh desc
+					if pa.Preferred != pb.Preferred {
+						return pa.Preferred && !pb.Preferred
+					}
+					if pa.Current != pb.Current {
+						return pa.Current && !pb.Current
+					}
+					ra, rb := pa.Width*pa.Height, pb.Width*pb.Height
+					if ra != rb {
+						return ra > rb
+					}
+					return pa.Refresh > pb.Refresh
+				})
 				pos := out.Position
 				if pos == nil {
 					pos = map[string]int{"x": 0, "y": 0}
@@ -133,8 +133,7 @@ func main() {
 			}
 		}
 	}
-	}
-	}
+
 	res := map[string]any{"monitors": monitors}
 	enc, _ := json.Marshal(res)
 	fmt.Println(string(enc))

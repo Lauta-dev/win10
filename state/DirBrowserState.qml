@@ -44,7 +44,7 @@ Singleton {
             root._mode = mode || "directories"
             root._showHidden = !!showHidden
             root._buf = ""
-            if (proc._bin === "") proc._bin = Qt.resolvedUrl("../scripts/list-dirs").toString().replace("file://", "")
+            if (proc._bin === "") proc._bin = Qt.resolvedUrl("../bin/list-dirs").toString().replace("file://", "")
             running = false
             running = true
         }

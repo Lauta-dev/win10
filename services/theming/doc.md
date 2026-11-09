@@ -3,13 +3,13 @@
 Sistema de temas de la shell en Go: un binario por comando, lógica
 compartida en `internal/`. Sin bash, sin python, sin jq/perl.
 
-Viven en `scripts/` ya compilados (igual que `wp-helper`):
+Viven en `bin/` ya compilados (igual que `wp-helper`):
 
 | Binario | Hace |
 | --- | --- |
-| `scripts/gtk-apply` | Tema GTK + iconos: gsettings, `settings.ini` (gtk3/gtk4), `gtkrc-2.0`, `accent-color`, mousepad y el icono de labwc (`rc.xml` `<theme><icon>` + reconfigure) |
-| `scripts/shell-theme` | Preset de `data/shell-themes.json` a shell + GTK + labwc + alacritty |
-| `scripts/matugen-apply` | Colores desde wallpaper vía `matugen` + post-hooks GTK |
+| `bin/gtk-apply` | Tema GTK + iconos: gsettings, `settings.ini` (gtk3/gtk4), `gtkrc-2.0`, `accent-color`, mousepad y el icono de labwc (`rc.xml` `<theme><icon>` + reconfigure) |
+| `bin/shell-theme` | Preset de `data/shell-themes.json` a shell + GTK + labwc + alacritty |
+| `bin/matugen-apply` | Colores desde wallpaper vía `matugen` + post-hooks GTK |
 
 ## Contratos CLI (los consume QML)
 
@@ -25,7 +25,7 @@ matugen-apply <wallpaper> --type <scheme> --mode <dark|light>
 ## Layout
 
 ```text
-scripts/theming/
+services/theming/
 ├── cmd/gtk-apply/      # main: flags, orquesta internal/gtk
 ├── cmd/shell-theme/    # main: preset -> md3 + GTK + labwc + terminal
 ├── cmd/matugen-apply/  # main: matugen + publicación md3 + hooks

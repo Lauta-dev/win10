@@ -7,7 +7,7 @@ en stdin/stdout (mismo protocolo que los demás daemons).
 ## Arranque
 
 ```bash
-scripts/daemon search run [--root DIR] [--entries N] [--max N] \
+bin/daemon search run [--root DIR] [--entries N] [--max N] \
                           [--cache PATH] [--refresh-after DUR]
 ```
 

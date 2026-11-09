@@ -17,7 +17,7 @@ description: Cómo funcionan las features de la shell (clipboard, AppMenu con co
 - Recientes: máx 5 en `SettingsState.recentApps` (`addRecentApp`), siempre al tope, badge "Reciente". Click derecho = `togglePinSmart(app.id)`.
 - Categorías: `>` lista; `>Categoría texto` filtra.
 - Comandos: `>b <txt>` DuckDuckGo · `>ia [gpt|claude|gemini] <prompt>` · `>sf <nombre>` busca archivos en `$HOME`.
-- `>sf`: daemon Go `scripts/daemons/service/search/` (índice en memoria + caché `$XDG_CACHE_HOME/qs-fileindex.txt`, NDJSON, `scripts/daemon search run`). Protocolo en su `doc.md`. QML lo arranca bajo demanda y lo apaga a los 20 s de inactividad. Es el único que trae ítems `isFile` (sin pin ni badge).
+- `>sf`: daemon Go `services/daemons/service/search/` (índice en memoria + caché `$XDG_CACHE_HOME/qs-fileindex.txt`, NDJSON, `bin/daemon search run`). Protocolo en su `doc.md`. QML lo arranca bajo demanda y lo apaga a los 20 s de inactividad. Es el único que trae ítems `isFile` (sin pin ni badge).
 - Vistas: datos en `enter()` (no en `onCompleted`), filtro vía `onSearchChanged`, ESC con búsqueda vacía cierra.
 
 ## Notificaciones
@@ -31,6 +31,6 @@ description: Cómo funcionan las features de la shell (clipboard, AppMenu con co
 `state/WifiState.qml` sobre `Quickshell.Networking` (nativo) + subvista en `ControlCenterNew`/`popups/views/NetworkView.qml`. Flujo: `connect()` → si falla con NoSecrets, pedir clave inline (`WifiState.inlineSsid`) → `connectWithPsk()`; otros errores se muestran. Click derecho: conectar/olvidar.
 
 ## MPD
-- Daemon Go `scripts/daemons/service/mpd/` (dueño del socket, conexión cmd+idle, NDJSON; protocolo en su `doc.md`). Ver también skill `mpd`.
+- Daemon Go `services/daemons/service/mpd/` (dueño del socket, conexión cmd+idle, NDJSON; protocolo en su `doc.md`). Ver también skill `mpd`.
 - `state/MpdConnection.qml` = bridge (`Process` atado al popup: nace con debounce 50 ms al entrar, muere a 100 ms al salir); `state/MpdState.qml` = estado reactivo; UI en `components/mpd/CpMpdView.qml` (tab Música del Hub). El arte sale por MPRIS (`MprisState.mpdArtUrl`).
 - IPC `mpd`: `open|toggle|close|play|pause|next|prev|seek <s>|volume <0-100>`.

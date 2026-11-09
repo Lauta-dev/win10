@@ -38,7 +38,7 @@ Singleton {
         property string _theme: ""
         property string _buf:   ""
         command: {
-            var script = Qt.resolvedUrl("../scripts/resolve-icons").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/resolve-icons").toString().replace("file://", "")
             return _theme !== ""
                 ? [script, "--theme", _theme]
                 : [script]
@@ -117,7 +117,7 @@ Singleton {
         property string _theme: ""
         property string _mode: "dark"
         command: {
-            var script = Qt.resolvedUrl("../scripts/gtk-apply").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/gtk-apply").toString().replace("file://", "")
             return [script, "--gtk", _theme, "--mode", _mode]
         }
         running: false
@@ -141,7 +141,7 @@ Singleton {
         property string _theme: ""
         property string _mode: "dark"
         command: {
-            var script = Qt.resolvedUrl("../scripts/gtk-apply").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/gtk-apply").toString().replace("file://", "")
             return [script, "--icons", _theme, "--mode", _mode]
         }
         running: false
@@ -199,7 +199,7 @@ Singleton {
         property string _theme: ""
         property string _mode: "dark"
         command: {
-            var script = Qt.resolvedUrl("../scripts/shell-theme").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/shell-theme").toString().replace("file://", "")
             return [script, _theme, "--mode", _mode]
         }
         running: false
@@ -237,7 +237,7 @@ Singleton {
             colorTheme = id
             SettingsState.markDirty()
             if (!WallpaperState.wallpaper) return
-            var script = Qt.resolvedUrl("../scripts/matugen-apply").toString().replace("file://", "")
+            var script = Qt.resolvedUrl("../bin/matugen-apply").toString().replace("file://", "")
             var wp = WallpaperState.wallpaper.replace(/'/g, "'\\''")
             var mode = TaskbarState.darkMode ? "dark" : "light"
             matugenThemeProc._cmd = "'" + script + "' '" + wp + "' --type " + WallpaperState.matugenSchemeType + " --mode " + mode

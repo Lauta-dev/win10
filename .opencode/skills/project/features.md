@@ -144,7 +144,7 @@ Se filtran en `StartmenuState.filterApps` y se despachan con
 |---|---|
 | `>b <texto>` | Busca en DuckDuckGo con el navegador por defecto (`xdg-open`). |
 | `>ia [gpt\|claude\|gemini] <prompt>` | Abre el proveedor con el prompt en la URL (`chatgpt.com/?q=`, `claude.ai/new?q=`, `gemini.google.com/app?q=`). Sin proveedor usa ChatGPT. |
-| `>sf <nombre>` | Busca archivos bajo `$HOME` con el daemon Go (`scripts/daemon search`) y los abre con `xdg-open`. |
+| `>sf <nombre>` | Busca archivos bajo `$HOME` con el daemon Go (`bin/daemon search`) y los abre con `xdg-open`. |
 
 - Escribir `>` solo (o un prefijo) lista los comandos disponibles con su hint.
 - `>sf` mantiene los resultados previos mientras el daemon recorre/consulta; los
@@ -152,11 +152,11 @@ Se filtran en `StartmenuState.filterApps` y se despachan con
 - `>sf` es el único que trae ítems `isFile`; en el delegate no muestran pin ni
   badge de reciente.
 
-**Búsqueda de archivos (Go):** `scripts/daemons/service/search/` mantiene un
+**Búsqueda de archivos (Go):** `services/daemons/service/search/` mantiene un
 índice en memoria de `$HOME` (poda de `node_modules`, `.cache`, assets, stores
 de juegos; cuota por carpeta de primer nivel) con caché en
 `$XDG_CACHE_HOME/qs-fileindex.txt`. Protocolo NDJSON en
-`scripts/daemons/service/search/doc.md`. QML lo arranca bajo demanda con un
+`services/daemons/service/search/doc.md`. QML lo arranca bajo demanda con un
 `Process` persistente y lo apaga por inactividad (20 s) o al cerrar el launcher.
 
 ### Apps recientes
@@ -290,10 +290,10 @@ User clicks network
 **Archivos:** `state/MpdState.qml` + `state/MpdConnection.qml`, `components/mpd/CpMpdView.qml`
 
 **Solución implementada:**
-Socket Unix de MPD propiedad del daemon Go (`scripts/mpd-daemon run`, doble conexión cmd+idle); `MpdConnection.qml` es un bridge NDJSON sobre un `Process` atado al popup (nace con debounce 50ms al entrar al modo mpd, muere a 100ms al cerrar; sin socket QML reutilizado).
+Socket Unix de MPD propiedad del daemon Go (`bin/daemon mpd run`, doble conexión cmd+idle); `MpdConnection.qml` es un bridge NDJSON sobre un `Process` atado al popup (nace con debounce 50ms al entrar al modo mpd, muere a 100ms al cerrar; sin socket QML reutilizado).
 
 **Arquitectura:**
-- `scripts/mpd/` (paquete Go, binario `scripts/mpd-daemon`) — Dueño del socket MPD (doble conexión cmd+idle). Comandos tipados: `ping/resync/currentsong/queue/playlists/search/artists/albums/add/addplay/playplaylist/delplaylist/saveplaylist/toggle/syncdb` + passthrough `raw`. Push sin id: `status/song/queue/playlists/conn`. `syncdb` es el seguro de faltantes (diff base−cola por nombre exacto, solo suma; si la cola está vacía y la base llena, la rellena para recuperar una cola perdida; tope 500; corre al pedirlo y solo ante cambios en la base). El arte del panel sale por MPRIS (`MprisState.mpdArtUrl`, el bridge mpd-mpris expone `mpris:artUrl`); el daemon no descarga portadas. Cola siempre completa, posición y versión siempre serializadas (incluido 0).
+- `services/daemons/service/mpd/` (paquete Go, binario `bin/daemon mpd run`) — Dueño del socket MPD (doble conexión cmd+idle). Comandos tipados: `ping/resync/currentsong/queue/playlists/search/artists/albums/add/addplay/playplaylist/delplaylist/saveplaylist/toggle/syncdb` + passthrough `raw`. Push sin id: `status/song/queue/playlists/conn`. `syncdb` es el seguro de faltantes (diff base−cola por nombre exacto, solo suma; si la cola está vacecho y la base llena, la rellena para recuperar una cola perdida; tope 500; corre al pedirlo y solo ante cambios en la base). El arte del panel sale por MPRIS (`MprisState.mpdArtUrl`, el bridge mpd-mpris expone `mpris:artUrl`); el daemon no descarga portadas. Cola siempre completa, posición y versión siempre serializadas (inclido 0).
 - `MpdConnection.qml` — Bridge: `sendCommand` (texto, controles simples) + `sendJson` (tipado con match por id) + `daemonEvent` push (status/song/queue/playlists por idle) para UI inmediata
 - `MpdState.qml` — Propiedades reactivas; búsquedas, listas, sync y writes van por tipado (sin parseo texto ni escaping en QML). Vacía el estado al caer MPD (`clearMpdState`) y repuebla al reconectar. Filtros locales en memoria intactos
 - `components/mpd/CpMpdView.qml` — tab Música del Hub: playlist izq + now-playing der (fondo = cover art oscurecido sin blur, título, `MprisControl`, `SeekBar`). Subvistas `>` a ancho completo

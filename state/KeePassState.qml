@@ -412,7 +412,7 @@ Singleton {
         _reunlock = ""
         _expectExit = false
         _bridgeErr = ""
-        var bin = Qt.resolvedUrl("../scripts/daemon").toString().replace("file://", "")
+        var bin = Qt.resolvedUrl("../bin/daemon").toString().replace("file://", "")
         bridgeProc.command = [bin, "keepass", "--db", dbPath]
         bridgeProc.running = true
         _outbox.push(JSON.stringify({id: _nextUnlockId(), cmd: "unlock", args: {password: pwd}}))

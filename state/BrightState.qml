@@ -1,4 +1,4 @@
-// BrightState.qml — Estado de brillo vía daemon Go (scripts/daemon bright).
+// BrightState.qml — Estado de brillo vía daemon Go (bin/daemon bright).
 //
 // API pública intacta: brightness, setBrightness(v), syncBrightProc.
 // Ciclo de vida LAZY: el daemon NO nace con la barra. El primer

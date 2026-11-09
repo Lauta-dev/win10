@@ -75,7 +75,7 @@ Singleton {
             }
         }
         function load() {
-            _bin = Qt.resolvedUrl("../scripts/list-monitors").toString().replace("file://", "")
+            _bin = Qt.resolvedUrl("../bin/list-monitors").toString().replace("file://", "")
             running = true
         }
     }

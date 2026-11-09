@@ -49,7 +49,7 @@ Singleton {
     property int _seq: 0
     property int _activeSeq: -1
     property bool _gotLine: false
-    readonly property string _bin: Qt.resolvedUrl("../scripts/calc-eval").toString().replace("file://", "")
+    readonly property string _bin: Qt.resolvedUrl("../bin/calc-eval").toString().replace("file://", "")
 
     Timer {
         id: debounce

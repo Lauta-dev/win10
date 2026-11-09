@@ -137,10 +137,10 @@ Singleton {
         gemini:  { label: "Gemini",  url: "https://gemini.google.com/app?q=" }
     })
 
-    // Daemon Go (`scripts/daemon search run`): índice en memoria del home,
+    // Daemon Go (`bin/daemon search run`): índice en memoria del home,
     // protocolo NDJSON por stdin/stdout (igual que mpd/keepass/bright).
     // Arranca bajo demanda al consultar y se apaga por inactividad.
-    readonly property string _daemonBin: Qt.resolvedUrl("../scripts/daemon").toString().replace("file://", "")
+    readonly property string _daemonBin: Qt.resolvedUrl("../bin/daemon").toString().replace("file://", "")
     property bool _searchReady: false
     property int _searchNextId: 1
     property int _searchPendingId: -1

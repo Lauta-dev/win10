@@ -1,5 +1,5 @@
 {
-  "comment": "Plantillas de exportacion de temas (las lee scripts/shell-theme). {rol} se reemplaza por el hex del md3 del modo. Entrada con key vacia = linea en blanco. Sin logica en codigo: solo mapeos y texto fijo.",
+  "comment": "Plantillas de exportacion de temas (las lee bin/shell-theme). {rol} se reemplaza por el hex del md3 del modo. Entrada con key vacia = linea en blanco. Sin logica en codigo: solo mapeos y texto fijo.",
   "alacritty": {
     "header": "# Generado por shell-theme — no editar manualmente",
     "sections": [

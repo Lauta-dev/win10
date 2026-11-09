@@ -17,7 +17,7 @@ Singleton {
     property var    thumbCache:       ({})
     property bool   _wpLoaded:        false
 
-    readonly property string _scripts: Qt.resolvedUrl("../scripts/").toString().replace("file://", "")
+    readonly property string _scripts: Qt.resolvedUrl("../bin/").toString().replace("file://", "")
     readonly property string _thumbCacheFile: Quickshell.env("HOME") + "/.cache/labwc-b/thumbcache.json"
 
     // ── Exposición de procesos hijos ─────────────────────────────
@@ -48,7 +48,7 @@ Singleton {
             var esc = path.replace(/'/g, "'\\''")
             var matugenCmd = ""
             if (ThemeState.colorTheme === "matugen") {
-                var script = Qt.resolvedUrl("../scripts/matugen-apply").toString().replace("file://", "")
+                var script = Qt.resolvedUrl("../bin/matugen-apply").toString().replace("file://", "")
                 var themeMode = TaskbarState.darkMode ? "dark" : "light"
                 matugenCmd = "'" + script + "' '" + esc + "' --type " + WallpaperState.matugenSchemeType + " --mode " + themeMode + " & "
             }

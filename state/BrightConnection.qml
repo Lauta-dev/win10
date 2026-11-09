@@ -93,7 +93,7 @@ Singleton {
         stdinEnabled: true
         running: false
         command: {
-            var bin = Qt.resolvedUrl("../scripts/daemon").toString().replace("file://", "")
+            var bin = Qt.resolvedUrl("../bin/daemon").toString().replace("file://", "")
             return [bin, "bright", "run"]
         }
         stdout: SplitParser { onRead: function(data) { root._onBridgeLine(data) } }
