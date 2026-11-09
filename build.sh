@@ -3,32 +3,35 @@
 # Construir todos los binarios de Go a bin/
 mkdir -p bin
 
+# A services
+cd ./services/
+
 # Daemons (binario único que despacha a diferentes servicios)
 echo "Construyendo daemon..."
-cd services/daemons && go build -o ../../bin/daemon
+cd daemons && go build -o ../../bin/daemon; cd ..
 
 # Calculadora
 echo "Construyendo calc-eval..."
-cd services/calc && go build -o ../../bin/calc-eval
+cd calc && go build -o ../../bin/calc-eval; cd ..
 
 # Themando (gtk-apply, shell-theme, matugen-apply)
 echo "Construyendo theming..."
-cd services/theming && go build -o ../../bin/gtk-apply ./cmd/gtk-apply
-cd services/theming && go build -o ../../bin/shell-theme ./cmd/shell-theme
-cd services/theming && go build -o ../../bin/matugen-apply ./cmd/matugen-apply
+cd theming && go build -o ../../bin/gtk-apply ./cmd/gtk-apply; cd .. 
+cd theming && go build -o ../../bin/shell-theme ./cmd/shell-theme; cd ..
+cd theming && go build -o ../../bin/matugen-apply ./cmd/matugen-apply; cd ..
 
 # Helpers sueltos
 echo "Construyendo list-dirs..."
-cd services/list-dirs && go build -o ../../bin/list-dirs
+cd list-dirs && go build -o ../../bin/list-dirs; cd ..
 
 echo "Construyendo list-monitors..."
-cd services/list-monitors && go build -o ../../bin/list-monitors
+cd list-monitors && go build -o ../../bin/list-monitors; cd ..
 
 echo "Construyendo resolve-icons..."
-cd services/resolve-icons && go build -o ../../bin/resolve-icons
+cd resolve-icons && go build -o ../../bin/resolve-icons; cd ..
 
 # Otros módulos (qsipc)
 echo "Construyendo qsipc..."
-cd services/qsipc && go build -o ../../bin/qsipc
+cd qsipc && go build -o ../../bin/qsipc; cd ..
 
 echo "¡Todos los binarios construidos!"
