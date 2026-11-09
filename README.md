@@ -1,4 +1,4 @@
-# shell_refactored — Windows 10 Taskbar para labwc / Wayland
+# win10 — Windows 10 Taskbar para labwc / Wayland
 
 Barra de tareas estilo Windows 10 / ChromeOS Material You construida en **QuickShell + QML**.
 Compositor objetivo: **labwc** (Wayland, `wlr-layer-shell`).
@@ -9,7 +9,7 @@ Compositor objetivo: **labwc** (Wayland, `wlr-layer-shell`).
 
 ```
 shell.qml       ← ShellRoot — instancia todos los módulos, controla carga diferida
-manifest.json   ← { name: "win10-taskbar", version: "1.0.0" }
+manifest.json   ← { name: "win10", version: "1.0.0" }
 ```
 
 `shell.qml` importa `./state`, `./components`, `./taskbar`, `./popups`, `./tray`, `./widgets`.
@@ -141,12 +141,29 @@ shell_refactored/
 │   ├── TrayIconPill.qml               # Ítem individual del tray con tooltip y menú contextual.
 │   └── qmldir
 │
-└── scripts/                           # Helpers Go + shell. Siempre via Process{}, nunca síncronos.
-    ├── daemons/ + daemon              # Binario único: service/mpd, keepass, bright, search (NDJSON stdio).
-    ├── calc / calc-eval                # Calculadora.
-    
-    ├── list-dirs / list-monitors      # JSON para DirBrowser (files = sniff texto) / monitores.
-    ├── resolve-icons                  # Genera { appId: "/path/icon.svg" } desde el icon theme.
-    ├── gtk-apply / matugen-apply / shell-theme / theming / wp-helper
+└── services/                         # Modulos Go (cada carpeta es un módulo propio).
+    ├── calc/                         # Calculadora.
+    ├── daemons/                      # Un binario: service/mpd, keepass, bright, search (NDJSON stdio).
+    ├── list-dirs/                     # JSON para DirBrowser (files = sniff texto) / monitores.
+    ├── list-monitors/                # Lista de monitores.
+    ├── resolve-icons/                # Genera { appId: "/path/icon.svg" } desde el icon theme.
+    ├── theming/                      # GTK-apply, shell-theme, matugen-apply.
+    │   ├── cmd/gtk-apply/            # GTK-apply
+    │   ├── cmd/shell-theme/          # Shell-theme
+    │   ├── cmd/matugen-apply/        # Matugen-apply
+    │   └── internal/                 # Lógica compartida
+    └── qsipc/                        # IPC client for quickshell
+        └── main.go                 # qsipc binary
+
+└── bin/                              # Binarios compilados (ignorado por git)
+    ├── daemon                         # daemons binary
+    ├── calc-eval                     # calculator
+    ├── list-dirs                     # directory lister
+    ├── list-monitors                 # monitor lister
+    ├── resolve-icons                 # icon resolver
+    ├── gtk-apply                     # GTK theme applier
+    ├── shell-theme                   # shell theme applier
+    ├── matugen-apply                 # matugen theme applier
+    └── qsipc                         # quickshell IPC client
     ```
 
