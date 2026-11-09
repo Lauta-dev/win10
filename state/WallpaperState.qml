@@ -113,11 +113,19 @@ Singleton {
         function requestThumb(path) {
             if (WallpaperState.thumbCache[path] || _queue.indexOf(path) >= 0) return
             _queue.push(path)
-            if (!running) _processQueue()
+            if (!running) _processQueueLIFO()
         }
         function _processQueue() {
             if (_queue.length === 0) return
             var path = _queue.shift()
+            _pendingPath = path
+            _cmd = "'" + WallpaperState._scripts + "wp-helper' thumb '" + path.replace(/'/g, "'\\''") + "'"
+            running = true
+        }
+
+        function _processQueueLIFO() {
+            if (_queue.length === 0) return
+            var path = _queue.pop()
             _pendingPath = path
             _cmd = "'" + WallpaperState._scripts + "wp-helper' thumb '" + path.replace(/'/g, "'\\''") + "'"
             running = true
