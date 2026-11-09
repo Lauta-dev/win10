@@ -11,8 +11,8 @@ scripts/daemon search run [--root DIR] [--entries N] [--max N] \
                           [--cache PATH] [--refresh-after DUR]
 ```
 
-QML: `Process { command: [scripts/daemon, "search", "run"] }` con
-`stdinEnabled: true`, arrancado bajo demanda al consultar y apagado
+QML: `Process { command: [bin/daemon, "search", "run"] }` con
+stdinEnabled: true`, arrancado bajo demanda al consultar y apagado
 por inactividad.
 
 El primer evento es siempre `{"type":"ready","ok":true,"count":N}`.

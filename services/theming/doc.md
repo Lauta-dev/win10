@@ -40,8 +40,8 @@ scripts/theming/
 ## Compilar
 
 ```sh
-go build -o ../gtk-apply ./cmd/gtk-apply
-go build -o ../shell-theme ./cmd/shell-theme
-go build -o ../matugen-apply ./cmd/matugen-apply
+go build -o ../../bin/gtk-apply ./cmd/gtk-apply
+go build -o ../../bin/shell-theme ./cmd/shell-theme
+go build -o ../../bin/matugen-apply ./cmd/matugen-apply
 go test ./...
 ```

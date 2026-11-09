@@ -5,10 +5,10 @@ protocolo NDJSON por stdin/stdout; solo cambia el arranque.
 
 ```sh
 daemons <mpd|keepass|bright|search> [flags...] | daemons version
-# QML: [scripts/daemon, "mpd", "run"]
-#      [scripts/daemon, "keepass", "--db", path]
-#      [scripts/daemon, "bright", "run"]
-#      [scripts/daemon, "search", "run"]
+# QML: [bin/daemon, "mpd", "run"]
+#      [bin/daemon, "keepass", "--db", path]
+#      [bin/daemon, "bright", "run"]
+#      [bin/daemon, "search", "run"]
 ```
 
 - `service/mpd/` — puente QML ↔ servidor MPD (pedidos JSON → comandos

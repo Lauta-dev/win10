@@ -45,5 +45,5 @@ Agregar una función = 1 entrada en el mapa de `funcs.go` (+ 1 caso en
 ## Build
 
 ```sh
-cd scripts/calc && go build -o ../calc-eval .
+cd services/calc && go build -o ../../bin/calc-eval .
 ```
