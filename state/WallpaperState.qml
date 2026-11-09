@@ -70,29 +70,7 @@ Singleton {
         onRunningChanged: {
             if (!running && _buf !== "") {
                 try {
-                    var list = JSON.parse(_buf)
-                    // Ordenar por nombre de archivo para consistencia (la primera entrada permanece primero)
-                    // Guardar la entrada actual para que permanezca primero si está presente
-                    var currentWallpaper = WallpaperState.wallpaper
-                    list.sort((a, b) => {
-                        var nameA = a.toLowerCase().split(/[/\\]/).pop()
-                        var nameB = b.toLowerCase().split(/[/\\]/).pop()
-                        if (nameA < nameB) return -1
-                        if (nameA > nameB) return 1
-                        return 0
-                    })
-                    // Mover la entrada actual al principio si está presente
-                    if (currentWallpaper && list.indexOf(currentWallpaper) >= 0) {
-                        var newList = [currentWallpaper]
-                        for (var i = 0; i < list.length; i++) {
-                            if (list[i] !== currentWallpaper) {
-                                newList.push(list[i])
-                            }
-                        }
-                        WallpaperState.wallpaperList = newList
-                    } else {
-                        WallpaperState.wallpaperList = list
-                    }
+                    WallpaperState.wallpaperList = JSON.parse(_buf)
                 } catch(e) {}
                 _buf = ""
             }

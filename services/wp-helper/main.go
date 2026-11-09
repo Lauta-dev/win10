@@ -18,6 +18,7 @@ import (
     "os"
     "os/exec"
     "path/filepath"
+    "sort"
     "strings"
 )
 
@@ -84,6 +85,12 @@ func scanDir(dir string) ([]string, error) {
     if err != nil {
         return nil, err
     }
+    
+    // Ordenar entradas alfabéticamente por nombre (case-insensitive)
+    sort.Slice(entries, func(i, j int) bool {
+        return strings.ToLower(entries[i].Name()) < strings.ToLower(entries[j].Name())
+    })
+    
     for _, entry := range entries {
         if entry.IsDir() {
             continue
