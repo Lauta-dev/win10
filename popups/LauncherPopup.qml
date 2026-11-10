@@ -16,7 +16,8 @@ Item {
     width: viewWidth
     height: viewHeight
     readonly property real viewWidth: 640
-    readonly property real viewHeight: 520
+    readonly property int customItemCount: 7
+    readonly property real viewHeight: 500
     readonly property real viewX: 0
     readonly property bool viewExclusiveFocus: true
     readonly property bool viewOpen: TaskbarState.panel === "launcher"
