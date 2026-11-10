@@ -238,7 +238,7 @@ Item {
                                         Rectangle {
                                             anchors.fill: parent
                                             radius: Style.container_radius
-                                            color: kind === 1 ? Style.surface_container_low
+                                            color: kind === 2 ? Style.surface_container_low
                                                 : m3tile.m3on ? Style.primary_container : Style.surface_container_low
                                             Behavior on color { ColorAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
@@ -246,7 +246,7 @@ Item {
                                                 anchors.fill: parent
                                                 radius: parent.radius
                                                 color: Style.interactive_bg
-                                                opacity: kind === 1 ? 0.0 : tileMouse.containsMouse ? 1.0 : 0.0
+                                                opacity: tileMouse.containsMouse ? 1.0 : 0.0
                                                 Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
                                             }
 
@@ -332,7 +332,7 @@ Item {
                                                             text: Icons.darkMode
                                                             font.pixelSize: Config.fontSizeIconLg
                                                             font.family: Icons.font
-                                                            color: TaskbarState.darkMode ? Style.on_primary : Style.on_surface
+                                                            color: TaskbarState.darkMode ? Style.on_primary_container : Style.on_surface
                                                         }
 
                                                         Mouse {
@@ -373,7 +373,7 @@ Item {
                                                             text: Icons.nightLightOff
                                                             font.pixelSize: Config.fontSizeIconLg
                                                             font.family: Icons.font
-                                                            color: TaskbarState.nightMode ? Style.on_primary : Style.on_surface
+                                                            color: TaskbarState.nightMode ? Style.on_primary_container : Style.on_surface
                                                         }
 
                                                         Mouse {

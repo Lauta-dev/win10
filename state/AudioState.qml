@@ -25,8 +25,19 @@ Singleton {
   // Sincroniza desde PipeWire solo cuando el sink está listo (evita 0 fantasma
   // al conectar un dispositivo nuevo). Escrituras locales son optimistas:
   // actualizan AudioState y PipeWire a la vez para evitar lag en sliders/OSD.
+  //
+  // Reactivo al conectar/cambiar dispositivo: snapshots bindeados a PipeWire
+  // que disparan la sync. Cambia el default sink (aunque ambos sinks estén
+  // ready, _sinkReady no dispara) o cambia su volumen/mute por afuera
+  // (teclas, apps, pactl) → el widget queda en sincronía.
+  readonly property var _sinkAudio: _sinkReady ? Pipewire.defaultAudioSink.audio : null
+  readonly property var _extVolume: _sinkAudio ? _sinkAudio.volume : -1.0
+  readonly property bool _extMuted: _sinkAudio ? _sinkAudio.muted : false
+
   Component.onCompleted: _syncFromPipewire()
-  on_SinkReadyChanged: if (_sinkReady) _syncFromPipewire()
+  on_SinkAudioChanged: _syncFromPipewire()
+  on_ExtVolumeChanged: _syncFromPipewire()
+  on_ExtMutedChanged: _syncFromPipewire()
 
   function _syncFromPipewire() {
     var sink = Pipewire.defaultAudioSink

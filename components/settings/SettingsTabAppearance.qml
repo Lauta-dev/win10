@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
 import "../../state"
@@ -141,6 +142,20 @@ Item {
     Component.onCompleted: ThemeState.scanThemes()
     function modeActive(id) {
         return id === "dark" ? TaskbarState.darkMode : !TaskbarState.darkMode
+    }
+
+    // ── Galería: listado nativo del directorio (sin procesos ni Go) ─
+    // FolderListModel filtra por extensión y ordena por nombre; en Linux
+    // Qt ≥6.5 refresca solo y vigila el dir (QFileSystemWatcher interno).
+    FolderListModel {
+        id: wallsModel
+        folder: WallpaperState.wallpaperDir !== "" ? "file://" + WallpaperState.wallpaperDir : ""
+        showDirs: false
+        showDotAndDotDot: false
+        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"]
+        caseSensitive: false
+        sortField: FolderListModel.Name
+        sortReversed: false
     }
 
     // ── DirBrowser overlay ──────────────────────────────────────
@@ -490,7 +505,7 @@ Item {
 
             Column {
                 anchors.centerIn: parent; spacing: root.chipPad
-                visible: WallpaperState.wallpaperList.length === 0
+                visible: wallsModel.count === 0
 
                 Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -539,8 +554,8 @@ Item {
             GridView {
                 enabled: !wpDirBrowser.visible
                 anchors.fill: parent
-                visible: WallpaperState.wallpaperList.length > 0
-                model: WallpaperState.wallpaperList
+                visible: wallsModel.count > 0
+                model: wallsModel
                 cellWidth:  Math.floor(width / root.colsFor(width))
                 cellHeight: Math.floor(cellWidth * 0.52)
                 clip: true
@@ -549,16 +564,11 @@ Item {
 
                 delegate: Item {
                     id: wpDelegate
-                    required property string modelData
+                    required property string filePath
                     width:  GridView.view.cellWidth
                     height: GridView.view.cellHeight
 
-                    readonly property bool isActive: WallpaperState.wallpaper === wpDelegate.modelData
-
-                    Component.onCompleted: {
-                        if (!WallpaperState.thumbCache[wpDelegate.modelData])
-                            WallpaperState.thumbProc.requestThumb(wpDelegate.modelData)
-                    }
+                    readonly property bool isActive: WallpaperState.wallpaper === wpDelegate.filePath
 
                     Rectangle {
                         id: wpCard
@@ -574,14 +584,21 @@ Item {
                             id: wpImg
                             anchors.fill: parent
                             radius: root.cardRadius
-                            source: WallpaperState.thumbSource(wpDelegate.modelData)
+                            source: wpDelegate.filePath
                             sourceSize: Qt.size(root.thumbW, root.thumbH)
-                            visible: status === Image.Ready
+                            // Cross-fade al estar lista: el orden de término
+                            // de los decodes es independiente por imagen
+                            // (peso del original); el fundido las suaviza.
+                            opacity: status === Image.Ready ? 1.0 : 0.0
+                            Behavior on opacity {
+                                NumberAnimation { duration: root.durHover; easing.type: Easing.OutCubic }
+                            }
+                            visible: status !== Image.Error
                         }
 
                         Column {
                             anchors.centerIn: parent; spacing: 4
-                            visible: wpImg.status !== Image.Ready
+                            visible: wpImg.opacity < 1.0 && wpImg.status !== Image.Error
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: wpImg.status === Image.Error ? Icons.imageBroken : Icons.image
@@ -615,7 +632,7 @@ Item {
 
                         HoverHandler { id: wpH }
                         TapHandler {
-                            onTapped: WallpaperState.wallpaperProc.apply(wpDelegate.modelData)
+                            onTapped: WallpaperState.wallpaperProc.apply(wpDelegate.filePath)
                         }
                         Mouse{}
                     }

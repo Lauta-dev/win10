@@ -35,10 +35,8 @@ PopupShell {
         if (isOpen) {
             activeTab = TaskbarState.settingsTab
             TaskbarState.settingsTab = 0
-            if (activeTab === 0 && !WallpaperState._wpLoaded)  { if (WallpaperState.wallpaperDir !== "") WallpaperState.wallpapersProc.load(WallpaperState.wallpaperDir); WallpaperState._wpLoaded = true }
             if (activeTab === 1 && !_monLoaded) { MonitorState.monitorsProc.load(); _monLoaded = true }
         } else {
-            WallpaperState._wpLoaded = false
             resetTabTimer.start()
         }
     }
@@ -51,8 +49,6 @@ PopupShell {
 
     onActiveTabChanged: {
         if (!isOpen) return
-        if (activeTab === 0 && !WallpaperState._wpLoaded)  { if (WallpaperState.wallpaperDir !== "") WallpaperState.wallpapersProc.load(WallpaperState.wallpaperDir); WallpaperState._wpLoaded = true }
-        else if (activeTab !== 0) { WallpaperState._wpLoaded = false }
         if (activeTab === 1 && !_monLoaded) { MonitorState.monitorsProc.load(); _monLoaded = true }
     }
 

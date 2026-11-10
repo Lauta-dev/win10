@@ -214,12 +214,9 @@ Rectangle {
                 readonly property bool isMd: modelData.isMd ?? false
                 readonly property string cellName: dbCell.isParent ? ".." : (modelData.name ?? "")
 
-                // Caching de miniaturas (mismo pipeline que el tab Wallpaper:
-                // wp-helper thumb → ~/.cache/qs-wallpapers, cola compartida)
-                Component.onCompleted: {
-                    if (dbCell.isImage && !WallpaperState.thumbCache[modelData.path])
-                        WallpaperState.thumbProc.requestThumb(modelData.path)
-                }
+                // Miniatura: se decodifica el archivo real a la escala de la
+                // celda (Qt cachea el pixmap entre recreaciones).
+                // (loadPreviews del dir actual; thumbSource es sólo lectura).
 
                 // Celda clickeable: archivo (files|images) elige; carpeta entra.
                 // Hover con border + overlay y cursor pointer (Mouse.qml).
@@ -234,12 +231,13 @@ Rectangle {
                     border.width: 1
                     Behavior on border.color { ColorAnimation { duration: 100; easing.type: Easing.OutCubic } }
 
-                    // Miniatura (modo images) — cacheada como en el tab Wallpaper
+                    // Miniatura (modo images) — decodifica el archivo real
+                    // a la escala de la celda (Qt cachea el pixmap).
                     RoundedImage {
                         id: dbThumb
                         anchors.fill: parent
                         radius: dbCard.radius
-                        source: dbCell.isImage ? WallpaperState.thumbSource(modelData.path) : ""
+                        source: dbCell.isImage ? dbCell.modelData.path : ""
                         sourceSize: Qt.size(300, 300)
                         visible: status === Image.Ready
                     }

@@ -24,6 +24,8 @@ ClippingRectangle {
         sourceSize.width: root.sourceSize.width > 0 ? root.sourceSize.width : 0
         sourceSize.height: root.sourceSize.height > 0 ? root.sourceSize.height : 0
         fillMode: root.fillMode
+        // Async: no bloquea la apertura del popup; el cross-fade del
+        // delegate disimula el orden de término de los decodes.
         asynchronous: true
         smooth: true
         mipmap: true
