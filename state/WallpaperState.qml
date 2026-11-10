@@ -49,6 +49,8 @@ Singleton {
             _cmd = matugenCmd + "pkill swaybg 2>/dev/null; swaybg -i '" + esc + "' -m fill >/dev/null 2>&1 &"
             running = true
             WallpaperState.wallpaper     = path
+            // Aplicar el tema actual para que los colores se actualicen inmediatamente
+            ThemeState.applyShellTheme(ThemeState.colorTheme)
             SettingsState.markDirty()
         }
     }
