@@ -241,12 +241,3 @@ qs ipc call calc toggle
 qs ipc call command-palette openClipboard
 ```
 
----
-
-## 🤖 Mantenimiento por IA
-
-Este repo se desarrolla con [OpenCode](https://opencode.ai). Las instrucciones del agente
-viven en [`AGENTS.md`](AGENTS.md): mapa de archivos (fuente de verdad), convenciones de
-estilo (`Style.*` / `Config.*`), patrones de popups/paneles/IPC y las verificaciones
-obligatorias de arriba. Para cualquier cambio: leer antes de editar, `qmllint` tras
-tocar QML y `go vet` tras tocar Go.
