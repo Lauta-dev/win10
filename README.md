@@ -43,13 +43,17 @@
 
 ## 📸 Capturas
 
-| Vista | Captura |
-|:---|:---:|
-| 🚀 **AppMenu** — búsqueda fuzzy, apps con descripción, recientes y pineados | <img src="public/1794432384.png" width="480" alt="AppMenu"/> |
-| 📋 **Portapapeles** — historial cliphist con previews de imagen y contador | <img src="public/1794432388.png" width="480" alt="Clipboard"/> |
-| ⚙️ **Centro de control** — usuario, oscuro/nocturno, brillo, pomodoro/calendario | <img src="public/1794432393.png" width="480" alt="Centro de control"/> |
-| 🌗 **Ajustes · Apariencia** — wallpaper con matugen, modo, fuente, GTK e iconos | <img src="public/1794432400.png" width="480" alt="Ajustes"/> |
-| 🎧 **Panel MPD** — cola + agregados recientes (skeleton de espera) y sidebar con controles | <img src="public/1794432405.png" width="480" alt="Panel MPD"/> |
+| 🚀 **AppMenu** | 📋 **Portapapeles** |
+|:---:|:---:|
+| <img src="public/1794432384.png" width="480" alt="AppMenu"/> | <img src="public/1794432388.png" width="480" alt="Clipboard"/> |
+
+| ⚙️ **Centro de control** | 🌗 **Ajustes · Apariencia** |
+|:---:|:---:|
+| <img src="public/1794432393.png" width="480" alt="Centro de control"/> | <img src="public/1794432400.png" width="480" alt="Ajustes"/> |
+
+| 🎧 **Panel MPD** — cola + recientes (skeleton de espera) |
+|:---:|
+| <img src="public/1794432405.png" width="480" alt="Panel MPD"/> |
 
 ---
 
