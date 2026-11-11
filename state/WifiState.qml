@@ -102,8 +102,10 @@ Singleton {
     }
 
     // ── Trigger scan ────────────────────────────────────────────────────────
-    // El scanner SOLO vive dentro del menú (dropdown):
-    // se prende al entrar y se apaga al salir o a los 10s.
+    // El scanner vive mientras la lista de redes esté abierta: con el scanner
+    // apagado NM deja de reportar APs y Quickshell los poda de `networks`
+    // (la lista queda solo con las conectadas/conocidas). Se apaga al cerrar
+    // la lista o el panel (ControlCenterNew) o al desactivar WiFi.
     Connections {
         target: Networking
         function onWifiEnabledChanged() {
@@ -115,12 +117,10 @@ Singleton {
         if (_wifiDevice) {
             scanning = true
             _wifiDevice.scannerEnabled = true
-            scanTimer.restart()
         }
     }
 
     function stopScan() {
-        scanTimer.stop()
         scanning = false
         if (_wifiDevice) _wifiDevice.scannerEnabled = false
     }
@@ -163,12 +163,5 @@ Singleton {
         if (reason === 4) return "Tiempo de autenticación agotado"
         if (reason === 5) return "Red no encontrada"
         return "Error de conexión"
-    }
-
-    Timer {
-        id: scanTimer
-        interval: 10000
-        repeat: false
-        onTriggered: wifiState.stopScan()
     }
 }

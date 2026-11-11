@@ -37,8 +37,9 @@ Item {
     readonly property bool _wifiConnected: _wifiEnabled && _connectedName !== ""
 
     // Redes ordenadas: conocidas primero (para las secciones del ListView).
-    // Se cachea por composición para no recrear delegates (y perder el foco
-    // del input) cuando el escaneo solo actualiza señales de redes existentes.
+    // Key por nombres: señales/connected/known no regeneran el cache (los
+    // delegates leen el objeto vivo). El swap del modelo lo hace la lista
+    // (wifiListComp) para preservar el scroll al aparecer/desaparecer redes.
     // ── Tiles M3 solo-ícono: 0 wifi, 1 dark, 2 night,
     // 3 pantalla (abre menú de layouts), 4 perfil.
     // Las funciones se re-evalúan solas (QML rastrea las deps usadas adentro).
@@ -61,7 +62,7 @@ Item {
             else {
                 root._wifiListOpen = !root._wifiListOpen
                 if (root._wifiListOpen) {
-                    root._refreshNets()
+                    root._refreshNets(true)
                     if (WifiState.wifiEnabled && !WifiState.scanning) WifiState.triggerScan()
                 } else {
                     WifiState.stopScan()
@@ -91,20 +92,23 @@ Item {
         _layVisible = true
     }
 
-    property var _netsCache: []
+    property var _netsLatest: []
     property string _netsKey: ""
-    function _refreshNets() {
+    // El swap del modelo lo hace la lista (preserva scroll); root publica.
+    property int _netsRev: 0
+    function _refreshNets(force) {
         var nets = WifiState.networks.slice()
         nets.sort(function(a, b) {
             return ((b && b.known) ? 1 : 0) - ((a && a.known) ? 1 : 0)
         })
         var key = ""
         for (var i = 0; i < nets.length; i++) {
-            key += (nets[i] ? nets[i].name + ":" + (nets[i].known ? "1" : "0") : "-") + "|"
+            key += (nets[i] ? nets[i].name : "-") + "|"
         }
-        if (key !== _netsKey) {
+        if (force || key !== _netsKey) {
             _netsKey = key
-            _netsCache = nets
+            _netsLatest = nets
+            _netsRev++
         }
     }
 
@@ -395,6 +399,7 @@ Item {
                                             hoverEnabled: true
                                             enabled: kind !== 2
                                             acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                            cursorShape: Qt.PointingHandCursor
                                             onClicked: (mouse) => {
                                                 if (kind === 1) root._toggleLayoutMenu(m3tile)
                                                 else root._tileRun(kind, mouse)
@@ -1056,16 +1061,46 @@ Item {
 
     Component {
         id: wifiListComp
+        // Alto = ventana visible (el Loader sigue al acordeón animado): si
+        // quedara en subViewListH el viewport es más alto que la ventana y
+        // el fin de la lista queda inalcanzable tras el clip.
         Rectangle {
-            height: root.subViewListH
+            id: listCard
+            height: parent.height
             radius: 12
             color: Style.surface_container_low
+
+            // Swap del modelo con preservación de scroll: el reset del
+            // ListView tira contentY a 0; se re-aplica el valor previo.
+            // Sin property _dirty: el handler escribe _appliedRev, que es
+            // dependencia del binding → QML lo detecta como loop. La
+            // conexión es explícita a _netsRev (ajeno a lo que se escribe).
+            property var _model
+            property int _appliedRev: -1
+            function _applyRev() {
+                if (_appliedRev === root._netsRev) return
+                _appliedRev = root._netsRev
+                if (!wifiList) return
+                var y = wifiList.contentY
+                _model = root._netsLatest
+                wifiList.contentY = y
+            }
+            Component.onCompleted: _applyRev()
+            Connections {
+                target: root
+                function on_NetsRevChanged() { listCard._applyRev() }
+            }
 
                 ListView {
                     id: wifiList
                     anchors.fill: parent
                     anchors.margins: 8
-                    model: root._netsCache
+                    // Margen de contenido arriba/abajo (no pega contra los
+                    // bordes redondeados al scrollear) y sin rebote al final.
+                    topMargin: 8
+                    bottomMargin: 8
+                    boundsBehavior: Flickable.StopAtBounds
+                    model: listCard._model
                     clip: true
                     spacing: 2
 
@@ -1273,6 +1308,9 @@ Item {
                         height: netDelegate._expanded ? (netDelegate._showError ? 72 : 48) : 0
                         clip: true
                         visible: height > 0
+                        // Expandir/colapsar (conectar, error) sin salto: el
+                        // delegate crece 44 + height por frame.
+                        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                         
 
                         Column {
@@ -1330,7 +1368,7 @@ Item {
     Component {
         id: wifiEmptyOffComp
         Rectangle {
-            height: root.subViewListH
+            height: parent.height
             radius: 12
             color: Style.surface_container_low
 
