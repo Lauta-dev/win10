@@ -10,8 +10,8 @@ Item {
     implicitWidth: contentRow.implicitWidth + 4
 
     // Sin track activo no hay widget (los players idle no cuentan).
+    // La visibilidad la maneja Taskbar (slide de width + fade de opacity).
     readonly property bool hasTrack: MprisState.musicTitle !== ""
-    visible: hasTrack
 
     Row {
         id: contentRow

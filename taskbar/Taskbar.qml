@@ -29,20 +29,25 @@ PanelWindow {
             anchors.bottomMargin: 2
             spacing: 5
 
-            // IZQ: widget MPRIS a la izquierda + slot fijo espejo del der
-            // (centro real de pantalla: las apps de la TaskList no se
-            // mueven al aparecer/desaparecer widgets del lado derecho).
-            Item {
-                Layout.preferredWidth: 280
+            // IZQ: widget MPRIS. Reveal con slide horizontal + fade: sin
+            // track colapsa a 0 y la TaskList central se re-centra
+            // acompañando. clip: el contenido es de ancho fijo y desborda
+            // durante el slide (contenedor chico, wipe válido).
+            MprisWidget {
+                id: mpris
+                readonly property bool shown: mpris.hasTrack
+                property real slide: shown ? 1 : 0
+
+                clip: true
+                opacity: slide
+                Layout.preferredWidth: Math.round(mpris.slide * mpris.implicitWidth)
                 Layout.fillHeight: true
 
-                Row {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: parent.height
-                    spacing: 5
-
-                    MprisWidget { height: parent.height }
+                Behavior on slide {
+                    NumberAnimation {
+                        duration: mpris.shown ? 250 : 200
+                        easing.type: Easing.OutCubic
+                    }
                 }
             }
 
@@ -56,7 +61,8 @@ PanelWindow {
                 }
             }
 
-            // DER: slot espejo (mismo ancho que izq → centro real de pantalla).
+            // DER: volumen + tray en slot fijo (el centro no reacciona a
+            // cambios del lado derecho).
             Item {
                 Layout.preferredWidth: 280
                 Layout.fillHeight: true
