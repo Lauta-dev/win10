@@ -24,15 +24,14 @@ el resto de los popups y menús se instancian con `AutoLazyLoader` la primera ve
 ```
 shell_refactored/
 │
-├── shell.qml                          # ShellRoot — punto de entrada. Instancia Taskbar,
-│                                      # TooltipOverlay y PanelPopupHost siempre. El resto se
+├── shell.qml                          # ShellRoot — punto de entrada. Instancia Taskbar
+│                                      # y PanelPopupHost siempre. El resto se
 │                                      # carga con AutoLazyLoader (carga diferida).
 ├── manifest.json                      # Metadata del paquete: name, description, version
 │
 ├── logic/                             # Módulos JS puros (sin dependencias de QML ni singletons).
 │   ├── text.js                        # normalización, fuzzy score, pretty paths.
 │   ├── time.js                        # formato de tiempo, clamp.
-│   ├── collections.js                 # filtrado, dedupe, sort, enrich.
 │   ├── mpd.js                         # parseo/filtrado MPD.
 │   ├── startmenu.js                   # filtrado de apps, comandos, iconos por extensión.
 │   └── keepass.js                     # filtrado KeePass y acciones de detalle.
@@ -46,7 +45,6 @@ shell_refactored/
 │   ├── MprisState.qml                 # Player MPRIS activo (título, artista, arte).
 │   ├── ClipboardState.qml             # Historial cliphist + thumbs en /tmp/quickshell-clipboard/.
 │   ├── Config.qml                     # Tokens de diseño: colores, tamaños, radios, fuentes.
-│   ├── ColorThemes.qml                # Catálogo de paletas dark/light. Sin estado mutable.
 │   ├── DirBrowserState.qml            # Listado de directorios/archivos (centraliza Process list-dirs).
 │   └── qmldir
 │
@@ -64,9 +62,6 @@ shell_refactored/
 │   │                                  # State layer en accent (hover 10%, pressed 18%).
 │   ├── DashWidget.qml                 # Trigger del Control Center. Muestra wifi y hora/fecha.
 │   ├── VolumeWidget.qml               # Ícono + slider inline (se revela con hover, sin popup).
-│   ├── VolumeInlineSlider.qml         # Slider lineal con perilla para VolumeWidget/MediaWidget.
-│   ├── ClipboardWidget.qml            # Click → LauncherPopup (modo clip).
-│   ├── MediaWidget.qml                # Variante combinada música + volumen.
 │   └── qmldir
 │
 ├── popups/                            # Paneles flotantes. Carga diferida via AutoLazyLoader.
@@ -81,7 +76,6 @@ shell_refactored/
 │   ├── OsdSliderPopup.qml            # OSD único vol/brillo/power (modo por IPC, sin reabrirse).
 │   │                                  # power: botones uniformes + highlight deslizante + nav ←/→/Enter/Esc.
 │   │                                  # IPC: vol (adjust/toggle), power (toggle/logout/reboot/off).
-│   ├── NotificationPopup.qml          # Toasts sobre WipePopupShell sin shape (abajo-derecha).
 │   ├── NotesSidebar.qml               # Bloc de notas (ventana SSD, autoguardado, resaltado, slash commands).
 │   ├── SettingsPopup.qml              # Panel principal de ajustes. 4 tabs.
 │   ├── PolkitPopup.qml                # Diálogo de autenticación polkit (centrado).
@@ -102,9 +96,7 @@ shell_refactored/
 
 │   ├── WindowCountBadge.qml           # Badge circular con número de ventanas.
 │   ├── SectionLabel.qml               # Etiqueta uppercase para secciones.
-│   ├── SegmentedControl.qml           # Pill row de opciones excluyentes.
 
-│   ├── ToggleSwitch.qml               # Switch on/off animado con pill.
 │   ├── PanelList.qml                  # Lista scrollable genérica reutilizable: modelo externo, delegate externo,
 │   │                                  # estado vacío/cargando configurable, buscador opcional, nav por teclado.
 │   ├── clipboard/                     # Submódulo del portapapeles (lógica + vista ClipView/ClipDelegate).

@@ -3,7 +3,7 @@
 Sistema de temas de la shell en Go: un binario por comando, lógica
 compartida en `internal/`. Sin bash, sin python, sin jq/perl.
 
-Viven en `bin/` ya compilados (igual que `wp-helper`):
+Viven en `bin/` ya compilados:
 
 | Binario | Hace |
 | --- | --- |

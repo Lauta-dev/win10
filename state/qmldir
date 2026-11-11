@@ -2,7 +2,6 @@ singleton Config 1.0 Config.qml
 singleton Icons 1.0 Icons.qml
 singleton TaskbarState 1.0 TaskbarState.qml
 singleton SettingsState 1.0 SettingsState.qml
-singleton ColorThemes 1.0 ColorThemes.qml
 
 
 singleton MonitorState 1.0 MonitorState.qml

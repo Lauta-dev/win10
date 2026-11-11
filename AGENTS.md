@@ -8,8 +8,8 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 
 - Arranque: `shell.qml` (ShellRoot + `PanelPopupHost` + `AutoLazyLoader` para Hub/Settings)
 - Barra: `taskbar/Taskbar.qml`; `taskbar/groups/` (TaskList, TaskButton); `taskbar/jumplist/` (JumpList + ítems); `tray/` (SystemTrayArea, TrayIconPill)
-- Widgets de barra (`widgets/`): VolumeWidget (+VolumeInlineSlider), MprisWidget, MediaWidget, ClipboardWidget, DashWidget
-- Lógica pura (`logic/`): módulos JS sin dependencias de QML (`text.js`, `time.js`, `collections.js`, `mpd.js`, `startmenu.js`, `keepass.js`)
+- Widgets de barra (`widgets/`): VolumeWidget, MprisWidget, DashWidget
+- Lógica pura (`logic/`): módulos JS sin dependencias de QML (`text.js`, `time.js`, `mpd.js`, `startmenu.js`, `keepass.js`)
 
 ### Popups (`popups/`, ventanas que se lanzan)
 - Lanzador AppMenu/Clipboard: `LauncherPopup.qml` → `components/appmenu/`, `components/clipboard/`, `state/ClipboardState.qml`
@@ -18,19 +18,17 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 - Música MPRIS: `MusicPopup.qml` → `state/MprisState.qml`
 - Centro de control: `ControlCenterNew.qml` → `state/WifiState.qml`, `BrightState.qml`, `MonitorState.qml`, `components/pomodoro/`
 - Ajustes: `SettingsPopup.qml` → `components/settings/`, `state/SettingsState.qml`, `WallpaperState.qml`, `ThemeState.qml`
-- Notificaciones: `NotificationPopup.qml` → `state/NotificationState.qml`, `components/NotificationList.qml`
 - Notas: `NotesSidebar.qml` → `state/NotesState.qml`
 - Polkit: `PolkitPopup.qml` → `state/PolkitState.qml`
-- Vistas auxiliares: `popups/views/` (DisplayView, NetworkView).
 
 ### Base reutilizable (`components/`)
 - Marcos de popup: `PopupShell`, `WipePopupShell`, `PanelPopupHost` (superficie global de los paneles grandes), `ConvexPopupShape`, `DismissOverlay`, `PopupDrawer`, `Drawer`
 - Carga diferida: `AutoLazyLoader`
-- Controles: `PillButton`, `ToggleSwitch`, `ValueSlider`, `SeekBar`, `SegmentedControl`, `Badge`, `AppTextInput`, `SmartSearchInput`, `PanelList`, `Mouse`
+- Controles: `PillButton`, `ValueSlider`, `SeekBar`, `Badge`, `AppTextInput`, `SmartSearchInput`, `PanelList`, `Mouse`
 - Subcarpetas con su `qmldir`: `appmenu/`, `clipboard/`, `hub/`, `mpd/`, `keepass/`, `pomodoro/`, `settings/`
 
 ### Estado y diseño (`state/`, singletons con línea en `state/qmldir`)
-- Diseño: `Style.qml` (siempre usarlo), `Config.qml`, `ColorThemes.qml`, `Icons.qml`
+- Diseño: `Style.qml` (siempre usarlo), `Config.qml`, `Icons.qml`
 - UI efímera: `TaskbarState.qml`. Persistencia: `SettingsState.qml` (`markDirty()`)
 - Lanzar apps: `AppLaunchState.qml`. Brillo: `BrightState.qml` + `BrightConnection.qml` (daemon Go)
 

@@ -102,7 +102,7 @@ Singleton {
     }
 
     // ── Trigger scan ────────────────────────────────────────────────────────
-    // El scanner SOLO vive dentro del menú (NetworkView / dropdown):
+    // El scanner SOLO vive dentro del menú (dropdown):
     // se prende al entrar y se apaga al salir o a los 10s.
     Connections {
         target: Networking

@@ -16,7 +16,7 @@ Singleton {
     property int brightness: 80
     property bool available: BrightConnection.available
 
-    // Compat: DisplayView/ControlCenterNew hacen `syncBrightProc.running = true`.
+    // Compat: ControlCenterNew hace `syncBrightProc.running = true`.
     // Ahora solo dispara un `get` al daemon.
     property alias syncBrightProc: syncStub
 
@@ -98,5 +98,5 @@ Singleton {
     }
 
     // Sin onCompleted: el daemon arranca al primer uso (C8).
-    // DisplayView/ControlCenterNew piden sync() al abrir su vista.
+    // ControlCenterNew pide sync() al abrir su vista.
 }

@@ -9,7 +9,6 @@ modules=(
     "$workspace/services/calc"
     "$workspace/services/qsipc"
     "$workspace/services/theming/internal/args"
-    "$workspace/services/wp-helper"
 )
 
 echo "Módulo | Tests | Cobertura | Resultado"
