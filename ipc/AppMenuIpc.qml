@@ -18,15 +18,15 @@ Item {
         function close()       { TaskbarState._hideLauncher() }
         function openClipboard() { TaskbarState._showLauncher("clip") }
         function openStartmenu() { root._toggleApp() }
-        // Hub (Música/Calc/Claves): un popup con tabs.
+        // Hub (Música/Calc): un popup con tabs.
+        // MpdPopup (cola MPD): panel "mpd" de PanelPopupHost; el Hub
+        // conserva su tab Música.
         function openMpd(): string {
-            if (TaskbarState.activePopup === "hub" && TaskbarState.hubTab === TaskbarState.hubTabMpd) {
-                TaskbarState.activePopup = ""
+            if (TaskbarState.panel === "mpd") {
+                TaskbarState.closePanel("mpd")
                 return "closed"
             }
-            TaskbarState._hideLauncher()
-            TaskbarState.hubTab = TaskbarState.hubTabMpd
-            TaskbarState.activePopup = "hub"
+            TaskbarState.openPanel("mpd")
             return "opened mpd"
         }
         function openMusic(): string { return openMpd() }
@@ -41,16 +41,5 @@ Item {
             return "opened calc"
         }
         function openCalculator(): string { return openCalc() }
-        function openKeepass(): string {
-            if (TaskbarState.activePopup === "hub" && TaskbarState.hubTab === TaskbarState.hubTabKeepass) {
-                TaskbarState.activePopup = ""
-                return "closed"
-            }
-            TaskbarState._hideLauncher()
-            TaskbarState.hubTab = TaskbarState.hubTabKeepass
-            TaskbarState.activePopup = "hub"
-            return "opened keepass"
-        }
-        function openPasswords(): string { return openKeepass() }
     }
 }

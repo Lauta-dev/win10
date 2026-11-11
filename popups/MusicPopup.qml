@@ -287,7 +287,7 @@ Item {
             anchors.fill: parent
             z: 10
             // Visible mientras la lista está abierta o terminando de salir.
-            visible: root._plOpen || plPanel.opacity > 0.001
+            visible: root._plOpen || plMenu.opacity > 0.001
 
             // Clic fuera de la lista: cierra
             Mouse {
@@ -296,66 +296,56 @@ Item {
                 onClicked: root._plOpen = false
             }
 
-                Rectangle {
-                    id: plPanel
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 60   // arriba de la fila de controles
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 250
-                    height: Math.min(root.players.length * 46 + 8, parent.height - 76)
-                    radius: 10
-                    color: Style.surface_container_low
-                    clip: true
-
-                // Entrada/salida: crece desde abajo, pegado al botón.
+            // Contenedor sobre DropdownMenu: superficie, fade+scale (crece
+            // desde abajo, transformOrigin Bottom) y dismiss del container.
+            // Las filas ricas (carátula + track) van como rowDelegate.
+            DropdownMenu {
+                id: plMenu
+                x: (playerPane.width - width) / 2
+                y: parent.height - 60 - height   // arriba de la fila de controles
+                width: 250
+                itemHeight: 44
                 transformOrigin: Item.Bottom
-                opacity: root._plOpen ? 1.0 : 0.0
-                scale: root._plOpen ? 1.0 : 0.88
-                transform: Translate {
-                    y: root._plOpen ? 0 : 8
-                    Behavior on y {
-                        NumberAnimation {
-                            duration: root._plOpen ? 220 : 140
-                            easing.type: Easing.OutCubic
-                        }
+                open: root._plOpen
+                onDismissed: root._plOpen = false
+                selectedId: MprisState.musicPlayer
+                items: {
+                    var list = []
+                    for (var i = 0; i < root.players.length; i++) {
+                        var p = root.players[i]
+                        list.push({ id: p.dbusName, label: p.identity || "Player", player: p })
                     }
+                    return list
                 }
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: root._plOpen ? 220 : 140
-                        easing.type: Easing.OutCubic
-                    }
-                }
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: root._plOpen ? 220 : 140
-                        easing.type: Easing.OutCubic
-                    }
+                onPicked: (id) => {
+                    MprisState.musicSetActivePlayer(id)
+                    root._plOpen = false
                 }
 
-                    ListView {
-                        id: plList
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        model: root.players
-                        spacing: 2
-                        clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    interactive: contentHeight > height
-
-                    delegate: Item {
+                // Filas ricas: delegate custom dueño de hover/pointer/selección
+                // (contrato de DropdownMenu). width = parent (la Column).
+                rowDelegate: Component {
+                    Item {
                         id: plRow
                         required property var modelData
-                        width: plList.width
-                        height: 44
+                        width: parent.width
+                        height: plMenu.itemHeight
 
-                        readonly property bool isActive: modelData.dbusName === MprisState.musicPlayer
+                        readonly property bool isActive: plMenu.selectedId === modelData.id
 
+                        // Un Rectangle por estado: selección debajo, hover encima.
                         Rectangle {
                             anchors.fill: parent
-                            radius: 8
+                            radius: 10
+                            color: Style.secondary_container
+                            opacity: plRow.isActive ? 1.0 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 10
                             color: Style.interactive_bg
-                            opacity: plRowHover.hovered ? 1.0 : 0.0
+                            opacity: plRowMouse.containsMouse && !plRow.isActive ? 1.0 : 0.0
                             Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
                         }
 
@@ -386,7 +376,7 @@ Item {
                                     id: plArt
                                     anchors.fill: parent
                                     radius: 6
-                                    source: plRow.modelData.trackArtUrl || ""
+                                    source: plRow.modelData.player ? (plRow.modelData.player.trackArtUrl || "") : ""
                                     visible: status === Image.Ready
                                 }
                             }
@@ -398,7 +388,7 @@ Item {
 
                                 Text {
                                     width: parent.width
-                                    text: plRow.modelData.identity
+                                    text: plRow.modelData.label
                                     font.pixelSize: Config.fontSizeBodySm
                                     font.family: Config.uiFont
                                     font.weight: Font.DemiBold
@@ -407,7 +397,7 @@ Item {
                                 }
                                 Text {
                                     width: parent.width
-                                    text: plRow.modelData.trackTitle || ""
+                                    text: plRow.modelData.player ? (plRow.modelData.player.trackTitle || "") : ""
                                     font.pixelSize: Config.fontSizeCaption
                                     font.family: Config.uiFont
                                     color: Style.on_surface_variant
@@ -422,19 +412,15 @@ Item {
                                 text: Icons.check
                                 font.pixelSize: Config.fontSizeBodySm
                                 font.family: Icons.font
-                                color: Style.primary
+                                color: Style.on_secondary_container
                             }
                         }
 
-                        HoverHandler { id: plRowHover }
-
                         Mouse {
+                            id: plRowMouse
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                MprisState.musicSetActivePlayer(plRow.modelData.dbusName)
-                                root._plOpen = false
-                            }
+                            onClicked: plMenu.picked(plRow.modelData.id)
                         }
                     }
                 }

@@ -4,9 +4,8 @@ Un solo binario Go con los daemons de la shell. Cada servicio mantiene su
 protocolo NDJSON por stdin/stdout; solo cambia el arranque.
 
 ```sh
-daemons <mpd|keepass|bright|search> [flags...] | daemons version
+daemons <mpd|bright|search> [flags...] | daemons version
 # QML: [bin/daemon, "mpd", "run"]
-#      [bin/daemon, "keepass", "--db", path]
 #      [bin/daemon, "bright", "run"]
 #      [bin/daemon, "search", "run"]
 ```
@@ -14,9 +13,6 @@ daemons <mpd|keepass|bright|search> [flags...] | daemons version
 - `service/mpd/` — puente QML ↔ servidor MPD (pedidos JSON → comandos
   MPD; eventos del servidor → empujones JSON). Protocolo en
   `service/mpd/doc.md` (sin cambios).
-- `service/keepass/` — puente QML ↔ base `.kdbx` nativa con
-  `gokeepasslib`. Vive desde el unlock hasta el lock. Protocolo en
-  `service/keepass/doc.md`.
 - `service/bright/` — puente QML ↔ backlight (lectura sysfs +
   escritura vía `brightnessctl`); vigila cambios externos. Protocolo en
   `service/bright/doc.md`.
@@ -24,4 +20,4 @@ daemons <mpd|keepass|bright|search> [flags...] | daemons version
   (`>sf`): se arma en la primera consulta y responde por nombre. Protocolo
   en `service/search/doc.md`.
 
-Sin dependencias salvo `gokeepasslib` (keepass): solo stdlib el resto.
+Sin dependencias externas: solo stdlib.

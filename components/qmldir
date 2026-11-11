@@ -9,6 +9,7 @@ SectionLabel 1.0 SectionLabel.qml
 PanelList 1.0 PanelList.qml
 SmartSearchInput   1.0 SmartSearchInput.qml
 PillButton 1.0 PillButton.qml
+DropdownMenu 1.0 DropdownMenu.qml
 SeekBar 1.0 SeekBar.qml
 ValueSlider 1.0 ValueSlider.qml
 MprisControl 1.0 MprisControl.qml

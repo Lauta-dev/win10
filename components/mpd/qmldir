@@ -1,5 +1,3 @@
 CpMpdView 1.0 CpMpdView.qml
 CpMpdDelegate 1.0 CpMpdDelegate.qml
-CpMpdFilterDelegate 1.0 CpMpdFilterDelegate.qml
 CpRecentStrip 1.0 CpRecentStrip.qml
-CpCategoryDelegate 1.0 CpCategoryDelegate.qml

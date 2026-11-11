@@ -2,6 +2,7 @@ LauncherPopup 1.0 LauncherPopup.qml
 
 SettingsPopup 1.0 SettingsPopup.qml
 HubPopup 1.0 HubPopup.qml
+MpdPopup 1.0 MpdPopup.qml
 ControlCenterNew 1.0 ControlCenterNew.qml
 MusicPopup 1.0 MusicPopup.qml
 

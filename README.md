@@ -30,12 +30,10 @@ shell_refactored/
 ├── manifest.json                      # Metadata del paquete: name, description, version
 │
 ├── logic/                             # Módulos JS puros (sin dependencias de QML ni singletons).
-│   ├── text.js                        # normalización, fuzzy score, pretty paths.
 │   ├── time.js                        # formato de tiempo, clamp.
 │   ├── mpd.js                         # parseo/filtrado MPD.
 │   ├── startmenu.js                   # filtrado de apps, comandos, iconos por extensión.
-│   └── keepass.js                     # filtrado KeePass y acciones de detalle.
-│
+│   │
 ├── state/                             # Singletons globales. pragma Singleton + Singleton {}.
 │   │                                  # Accesibles por nombre desde cualquier QML sin import path.
 │   ├── TaskbarState.qml               # Bus central de eventos UI (panel, activePopup, volumeSliderOpen, popupX…).
@@ -70,7 +68,9 @@ shell_refactored/
 │   │                                  # El resto usa components/WipePopupShell (wipe estilo minflair)
 │   │                                  # + fusión convex con la barra (ConvexPopupShape, flares, overscan 16px).
 │   ├── ControlCenterNew.qml           # Vista "controlcenter" del host (right): usuario, tiles, brillo, calendario/notif/pomodoro, wifi.
-│   ├── HubPopup.qml                   # Hub con tabs: Música (MPD) + Pomodoro + Calc + Claves.
+│   ├── HubPopup.qml                   # Hub con tabs: Música (MPD) + Calc.
+│   ├── MpdPopup.qml                   # Panel MPD (PanelPopupHost): CpMpdView
+│   │                                  # (cola sobre PanelList, focus único hover/teclado + fila sonando con bg sólido).
 │   ├── LauncherPopup.qml              # Vista "launcher": AppMenu/Clipboard por modo (sin reabrirse).
 │   ├── MusicPopup.qml                 # Vista "music": player MPRIS (+ cola MPD expandible a la derecha).
 │   ├── OsdSliderPopup.qml            # OSD único vol/brillo/power (modo por IPC, sin reabrirse).
@@ -84,7 +84,7 @@ shell_refactored/
 ├── components/                        # Primitivos UI reutilizables. Sin lógica de negocio.
 │   ├── ConvexPopupShape.qml           # Shape convexo para fusión popup↔barra (radios direccionales + flares).
 │   ├── WipePopupShell.qml             # Shell genérico: superficie fija + wipe estilo minflair (flag, position, contentWidth/Height).
-│   ├── PanelPopupHost.qml             # Superficie global única de Launcher/JumpList/Music/CC (API viewWidth/Height/X, _CONFIGS, retención en cierre).
+│   ├── PanelPopupHost.qml             # Superficie global única de Launcher/JumpList/Music/CC/Mpd (API viewWidth/Height/X, _CONFIGS, retención en cierre).
 │   ├── SeekBar.qml / MprisControl.qml  # Piezas MPRIS (seek, prev/play/next).
 │   ├── ValueSlider.qml                # Slider con ícono para popups (volumen global).
 │   ├── SmartSearchInput.qml           # Buscador con contador integrado (showSearchCounter).
@@ -99,6 +99,10 @@ shell_refactored/
 
 │   ├── PanelList.qml                  # Lista scrollable genérica reutilizable: modelo externo, delegate externo,
 │   │                                  # estado vacío/cargando configurable, buscador opcional, nav por teclado.
+│   │                                  # Hover = selección por norma (focus único); opt-out con hoverSelects: false.
+│   ├── DropdownMenu.qml                # Menú flotante reutilizable (dropdown): items {id,label,icon,danger},
+│   │                                  # selectedId, hover + bg de selección; pointer solo en las filas.
+│   │                                  # rowDelegate para filas custom (ej. players con carátula en MusicPopup).
 │   ├── clipboard/                     # Submódulo del portapapeles (lógica + vista ClipView/ClipDelegate).
 │   │   ├── ClipEntry.qml              # Parsea una línea raw de cliphist en un objeto enriquecido (tipo, preview, etc.).
 │   │   ├── ClipFilter.qml             # Filtrado estilo fzf con debounce de 120 ms. Expone results[].
@@ -115,13 +119,11 @@ shell_refactored/
 │   │   ├── CpCalcPanel.qml            # Calculadora del Hub.
 │   │   ├── CpCalcFraction.qml / CpCalcPie.qml
 │   │   └── qmldir
-│   ├── mpd/                           # Vista Música del Hub (MPD).
-│   │   ├── CpMpdView.qml              # Buscar + controlar MPD.
-│   │   ├── CpMpdDelegate / Filter / RecentStrip / CategoryDelegate
-│   │   └── qmldir
-│   ├── keepass/                       # Vista Claves del Hub (KeePass).
-│   │   ├── CpKeepassView.qml          # Buscar + ver entradas.
-│   │   ├── CpKeepassDelegate / DetailDelegate / AddForm
+│   ├── mpd/                           # Vista Música MPD (compartida: Hub tab + panel "mpd").
+│   │   ├── CpMpdView.qml              # Cola única sobre PanelList (sin subvistas `>`, sin restaurar posición),
+│   │   │                              # recientes persistentes, cover full-bleed tintado, focus único.
+│   │   ├── CpMpdDelegate.qml          # Fila de canción (wash/pill sonando, sin hover propio).
+│   │   ├── CpRecentStrip.qml          # Tira horizontal de agregados recientes (click reproduce).
 │   │   └── qmldir
 │   ├── pomodoro/                      # Pomodoro (Hub + centro de control).
 │   │   ├── PomodoroPanel.qml          # Ring + controles + ajustes.
@@ -135,7 +137,7 @@ shell_refactored/
 │
 └── services/                         # Modulos Go (cada carpeta es un módulo propio).
     ├── calc/                         # Calculadora.
-    ├── daemons/                      # Un binario: service/mpd, keepass, bright, search (NDJSON stdio).
+    ├── daemons/                      # Un binario: service/mpd, bright, search (NDJSON stdio).
     ├── list-dirs/                     # JSON para DirBrowser (files = sniff texto) / monitores.
     ├── list-monitors/                # Lista de monitores.
     ├── resolve-icons/                # Genera { appId: "/path/icon.svg" } desde el icon theme.

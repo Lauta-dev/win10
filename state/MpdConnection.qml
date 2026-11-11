@@ -23,12 +23,13 @@ Singleton {
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/run/user/1000") + "/mpd/socket"
     readonly property bool connected: _ready
 
-    // El bridge lo comparten Hub (tab Música) y MusicPopup (cola al cambiar
-    // a MPD): se pide por consumidor para que cerrar uno no apague la
-    // conexión del otro. Activo mientras cualquiera lo necesite.
+    // El bridge lo comparten Hub (tab Música), MusicPopup (cola al cambiar
+    // a MPD) y MpdPopup: se pide por consumidor para que cerrar uno no
+    // apague la conexión del otro. Activo mientras cualquiera lo necesite.
     property var _consumers: ({})
     readonly property bool pollingActive: _consumers["hub"] === true
         || _consumers["music"] === true
+        || _consumers["mpd"] === true
 
     function setPollingConsumer(id, active) {
         if ((_consumers[id] === true) === active) return

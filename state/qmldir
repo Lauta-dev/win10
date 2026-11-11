@@ -22,7 +22,6 @@ singleton OpenAppsState 1.0 OpenAppsState.qml
 singleton ClipboardState 1.0 ClipboardState.qml
 singleton NotesState 1.0 NotesState.qml
 
-singleton KeePassState 1.0 KeePassState.qml
 singleton Style 1.0 Style.qml
 singleton CalculatorState 1.0 CalculatorState.qml
 

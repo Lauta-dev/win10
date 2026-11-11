@@ -1,5 +1,5 @@
 // PanelPopupHost.qml — Superficie global única para los paneles grandes
-// (Launcher, JumpList, Music, ControlCenter).
+// (Launcher, JumpList, Music, ControlCenter, Mpd).
 //
 // Es una instancia de WipePopupShell: hereda wipe, máscara, DismissOverlay
 // y keyboardFocus, así que los 4 paneles comparten UNA ventana layer-shell
@@ -33,7 +33,8 @@ WipePopupShell {
         "launcher":      { position: "center", sideMargin: 8,  width: 640, height: 520, radius: 16, openMs: 320, closeMs: 240 },
         "jumplist":      { position: "left",   sideMargin: 8,  width: 240, height: 320, radius: Style.popup_radius, openMs: 300, closeMs: 300 },
         "music":         { position: "left",   sideMargin: 8,  width: 396, height: 346, radius: Style.popup_radius, openMs: 240, closeMs: 200 },
-        "controlcenter": { position: "right",  sideMargin: 10, width: 420, height: 560, radius: Style.popup_radius, openMs: 320, closeMs: 240 }
+        "controlcenter": { position: "right",  sideMargin: 10, width: 420, height: 560, radius: Style.popup_radius, openMs: 320, closeMs: 240 },
+        "mpd":           { position: "center", sideMargin: 8,  width: 900, height: 560, radius: Style.popup_radius, openMs: 280, closeMs: 220 }
     })
 
     // Retención del panel en cierre: darle al wipe de salida el mismo box
@@ -66,6 +67,7 @@ WipePopupShell {
                             : shell._active === "jumplist" ? lJumplist.item
                             : shell._active === "music" ? lMusic.item
                             : shell._active === "controlcenter" ? lCC.item
+                            : shell._active === "mpd" ? lMpd.item
                             : null
 
     // ── Shell ──
@@ -123,5 +125,11 @@ WipePopupShell {
         condition: TaskbarState.panel === "controlcenter"
         visible: shell._active === "controlcenter"
         source: Component { ControlCenterNew {} }
+    }
+    AutoLazyLoader {
+        id: lMpd
+        condition: TaskbarState.panel === "mpd"
+        visible: shell._active === "mpd"
+        source: Component { MpdPopup {} }
     }
 }

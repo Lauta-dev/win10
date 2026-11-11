@@ -40,9 +40,9 @@ Item {
     // Key por nombres: señales/connected/known no regeneran el cache (los
     // delegates leen el objeto vivo). El swap del modelo lo hace la lista
     // (wifiListComp) para preservar el scroll al aparecer/desaparecer redes.
-    // ── Tiles M3 solo-ícono: 0 wifi, 1 dark, 2 night,
-    // 3 pantalla (abre menú de layouts), 4 perfil.
-    // Las funciones se re-evalúan solas (QML rastrea las deps usadas adentro).
+    // ── Tiles M3 solo-ícono: 0 wifi, 1 pantalla (menú de layouts),
+    // 2 dark/night. Las funciones se re-evalúan solas (QML rastrea las
+    // deps usadas adentro).
     function _tileOn(k) {
         if (k === 0) return _wifiEnabled
         return root._layVisible
@@ -71,14 +71,14 @@ Item {
         }
     }
 
-    // Tile de pantalla (3): menú flotante de layouts.
+    // Tile de pantalla (3): menú flotante de layouts. Posiciona con el
+    // tamaño implícito del DropdownMenu y hace flip vertical si no entra arriba.
     function _toggleLayoutMenu(tile) {
         if (_layVisible) { _layVisible = false; return }
-        var w = 200
-        var h = 3 * 44 + 8
+        var w = layMenu.width
+        var h = layMenu.height
         var pos = tile.mapToItem(wrapper, 0, 0)
         _layX = Math.max(8, Math.min(pos.x + tile.width / 2 - w / 2, wrapper.width - w - 8))
-        var spaceAbove = pos.y - 8
         var layY = pos.y - h - 8
         if (layY < 8) {
             var spaceBelow = wrapper.height - 8 - (pos.y + tile.height)
@@ -834,228 +834,53 @@ Item {
         }
 
         // ── Context Menu (inside wrapper so Region mask includes it) ─────
-        Rectangle {
+        // Menú contextual WiFi sobre DropdownMenu: items según estado
+        // (conectar/desconectar; olvidar solo en conocidas no conectadas).
+        // Sin onDismissed: el click en la superficie no cierra (paridad).
+        DropdownMenu {
             id: ctxMenu
             x: root._ctxX
             y: root._ctxY
             width: 180
-            height: ctxCol.implicitHeight + 8
-            visible: opacity > 0
-            opacity: root._ctxVisible ? 1.0 : 0.0
-            scale: root._ctxVisible ? 1.0 : 0.96
-            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-            radius: 12
-            color: Style.surface_container_low
-            z: 1000
-
-            Column {
-                id: ctxCol
-                anchors.fill: parent
-                anchors.margins: 4
-                spacing: 2
-
-                Item {
-                    width: parent.width
-                    height: 32
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Style.button_radius
-                        color: Style.interactive_bg
-                        opacity: ctxConnectH.hovered ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                        
-                    }
-
-                    Row {
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: root._ctxConnected ? Icons.wifiOff : Icons.wifi
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Icons.font
-                            color: Style.on_surface
-                        }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: root._ctxConnected ? "Desconectar" : "Conectar"
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Config.uiFont
-                            color: Style.on_surface
-                        }
-                    }
-
-                    HoverHandler { id: ctxConnectH }
-
-                    Mouse {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (root._ctxConnected) {
-                                WifiState.disconnect(root._ctxSsid)
-                            } else {
-                                WifiState.connectTo(root._ctxSsid, "")
-                            }
-                            root._ctxVisible = false
-                        }
-                    }
+            itemHeight: 32
+            iconPixelSize: Config.fontSizeBodySm
+            open: root._ctxVisible
+            items: {
+                var list = [{ id: "toggle",
+                              label: root._ctxConnected ? "Desconectar" : "Conectar",
+                              icon: root._ctxConnected ? Icons.wifiOff : Icons.wifi }]
+                if (root._ctxKnown && !root._ctxConnected)
+                    list.push({ id: "forget", label: "Olvidar", icon: Icons.trash, danger: true })
+                return list
+            }
+            onPicked: (id) => {
+                if (id === "toggle") {
+                    if (root._ctxConnected) WifiState.disconnect(root._ctxSsid)
+                    else WifiState.connectTo(root._ctxSsid, "")
+                } else if (id === "forget") {
+                    WifiState.forget(root._ctxSsid)
                 }
-
-                Item {
-                    width: parent.width
-                    height: 32
-                    visible: root._ctxKnown && !root._ctxConnected
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Style.button_radius
-                        color: Style.interactive_bg
-                        opacity: ctxForgetH.hovered ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                        
-                    }
-
-                    Row {
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: Icons.trash
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Icons.font
-                            color: Style.danger
-                        }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Olvidar"
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Config.uiFont
-                            color: Style.danger
-                        }
-                    }
-
-                    HoverHandler { id: ctxForgetH }
-
-                    Mouse {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            WifiState.forget(root._ctxSsid)
-                            root._ctxVisible = false
-                        }
-                    }
-                }
+                root._ctxVisible = false
             }
         }
 
         // ── Menú de layouts de pantalla (tile laptop) ────────────────────
-        Rectangle {
+        DropdownMenu {
             id: layMenu
             x: root._layX
             y: root._layY
-            width: 200
-            height: layCol.implicitHeight + 8
-            visible: opacity > 0
-            opacity: root._layVisible ? 1.0 : 0.0
-            scale: root._layVisible ? 1.0 : 0.96
-            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-            radius: 12
-            color: Style.surface_container_low
-            z: 1000
-
-            Mouse {
-                anchors.fill: parent
-                cursorShape: Qt.ArrowCursor
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                onClicked: root._layVisible = false
-            }
-
-            property var items: [
+            open: root._layVisible
+            selectedId: MonitorState.activeLayout
+            items: [
                 { id: "netbook", label: "Netbook", icon: Icons.display },
                 { id: "dual", label: "Dual", icon: Icons.displayDual },
                 { id: "monitor", label: "Monitor", icon: Icons.displayMonitor }
             ]
-
-            Column {
-                id: layCol
-                anchors.fill: parent
-                anchors.margins: 4
-                spacing: 2
-
-                Repeater {
-                    model: layMenu.items
-
-                    delegate: Item {
-                        id: layRow
-                        required property var modelData
-                        width: layCol.width
-                        height: 44
-
-                        readonly property bool isActive: MonitorState.activeLayout === modelData.id
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 10
-                            color: Style.interactive_bg
-                            opacity: layRowHover.hovered ? 1.0 : 0.0
-                            Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                        }
-
-                        Text {
-                            id: layIcon
-                            anchors.left: parent.left
-                            anchors.leftMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: layRow.modelData.icon
-                            font.pixelSize: Config.fontSizeBody
-                            font.family: Icons.font
-                            color: layRow.isActive ? Style.primary : Style.on_surface_variant
-                        }
-
-                        Text {
-                            id: layCheck
-                            anchors.right: parent.right
-                            anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: layRow.isActive
-                            text: Icons.check
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Icons.font
-                            color: Style.primary
-                        }
-
-                        Text {
-                            anchors.left: layIcon.right
-                            anchors.leftMargin: 10
-                            anchors.right: layCheck.visible ? layCheck.left : parent.right
-                            anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: layRow.modelData.label
-                            font.pixelSize: Config.fontSizeBodySm
-                            font.family: Config.uiFont
-                            font.weight: layRow.isActive ? Font.Medium : Font.Normal
-                            color: Style.on_surface
-                            elide: Text.ElideRight
-                        }
-
-                        HoverHandler { id: layRowHover }
-
-                        Mouse {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                MonitorState.layoutSwitchProc.apply(layRow.modelData.id)
-                                root._layVisible = false
-                            }
-                        }
-                    }
-                }
+            onPicked: (id) => {
+                MonitorState.layoutSwitchProc.apply(id)
+                root._layVisible = false
             }
+            onDismissed: root._layVisible = false
         }
     }
 
@@ -1213,8 +1038,10 @@ Item {
                                 root._ctxSsid = modelData.name
                                 root._ctxConnected = modelData.connected
                                 root._ctxKnown = modelData.known
-                                 root._ctxX = (pos.x + 180 > wrapper.width) ? pos.x - 180 : pos.x
-                                root._ctxY = (pos.y + 70 > wrapper.height) ? pos.y - 70 : pos.y
+                                var w = ctxMenu.width
+                                var h = ctxMenu.height
+                                root._ctxX = (pos.x + w > wrapper.width) ? pos.x - w : pos.x
+                                root._ctxY = (pos.y + h > wrapper.height) ? pos.y - h : pos.y
                                 root._ctxVisible = true
                                 } else {
                                     if (modelData.connected) {

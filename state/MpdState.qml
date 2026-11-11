@@ -3,7 +3,6 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
-import "../logic/text.js" as TextLogic
 import "../logic/time.js" as TimeLogic
 import "../logic/mpd.js" as MpdLogic
 Singleton {
@@ -11,29 +10,10 @@ Singleton {
 
     // ── Estado público ───────────────────────────────────────────────
     property var playlist: []
-    property var savedPlaylists: []
     property var recentSongs: []      // 5 últimos de la biblioteca (daemon "recent")
-
-    // Ids de subvista del palette (fuente única, sin magic strings).
-    readonly property string subPlaylist: "playlist"
-    readonly property string subArtist: "artist"
-    readonly property string subAlbum: "album"
-    readonly property string subPlDelete: "pldel"
-    readonly property var subModes: [subPlaylist, subArtist, subAlbum, subPlDelete]
-
-    // Submodo desde el texto: "" (cola), playlist, artist, album, pldel.
-    function subFor(text) {
-        return TextLogic.subFor(text, TaskbarState.searchPrefix)
-    }
-
-    function fuzzyScore(query, target) {
-        return TextLogic.fuzzyScore(query, target)
-    }
-
-    // ">pl" → "playlist", ">a" → mejor coincidencia.
-    function resolveSub(text) {
-        return TextLogic.resolveSub(text, TaskbarState.searchPrefix, subModes)
-    }
+    // El pedido de recientes ya respondió (ok o error). Mientras es false,
+    // CpRecentStrip reserva su lugar con skeletons (sin salto al abrir).
+    property bool recentLoaded: false
 
     // ── Cache en disco de recientes ────────────────────────────────
     // La tira muestra lo último conocido al instante; el pedido al
@@ -175,11 +155,6 @@ Singleton {
             MpdLogic.roundQueueDurations(q)
             root.playlist = q
             if (ev.version !== undefined && ev.version !== null) root.playlistVersion = ev.version
-        } else if (ev.type === "playlists") {
-            var names = ev.names || []
-            var res = []
-            for (var j = 0; j < names.length; j++) res.push({ name: names[j], query: names[j] })
-            root.savedPlaylists = res
         }
     }
 
@@ -225,7 +200,6 @@ Singleton {
         _refreshStatus()
         _refreshCurrentSong()
         loadPlaylist()
-        _loadSavedPlaylists()
     }
 
     function _refreshStatus() {
@@ -295,12 +269,6 @@ Singleton {
     }
 
     // ── Playlist (push del daemon; el parseo vive en Go) ──────────
-    function _loadSavedPlaylists() {
-        if (!MpdConnection.connected) return
-        MpdConnection.sendJson("playlists", {}, function(ev) {
-            if (ev && ev.ok && ev.names) root._applyDaemonEvent({type: "playlists", names: ev.names})
-        })
-    }
 
     property bool _syncingQueue: false
     // Entrada al modo: faltantes + recientes en UN pedido ("enter").
@@ -313,6 +281,7 @@ Singleton {
         var wantRecent = root.recentSongs.length === 0 || (Date.now() - root._lastRecentAt) >= 60000
         MpdConnection.sendJson("enter", {limit: 5, recent: wantRecent}, function(ev) {
             syncTimeout.stop(); root._syncingQueue = false
+            root.recentLoaded = true
             if (!ev || !ev.ok) { console.log("[MpdState] enter:", ev && ev.error); return }
             if (wantRecent && ev.items && ev.items.length > 0) {
                 var res = MpdLogic.transformRecentItems(ev.items)
@@ -447,119 +416,10 @@ Singleton {
         MpdConnection.sendCommand("shuffle", function(){})
     }
 
-    // ── Playlists guardadas (tipado; quoting en el daemon) ────────
-    function playPlaylist(name) {
-        MpdConnection.sendJson("playplaylist", {name: name}, function(ev) {
-            if (!ev || !ev.ok) console.log("[MpdState] playplaylist:", ev && ev.error)
-        })
-    }
-    function deletePlaylist(name) {
-        MpdConnection.sendJson("delplaylist", {name: name}, function(ev) {
-            if (ev && ev.ok) root.savedPlaylists = root.savedPlaylists.filter(function(p) { return p.name !== name })
-            else console.log("[MpdState] delplaylist:", ev && ev.error)
-        })
-    }
-    function savePlaylist(name) {
-        MpdConnection.sendJson("saveplaylist", {name: name}, function(ev) {
-            if (ev && ev.ok) _loadSavedPlaylists()
-            else console.log("[MpdState] saveplaylist:", ev && ev.error)
-        })
-    }
-
-    // ── Listar artistas/álbumes/playlists (daemon tipado + fallback local) ─
-    function listArtists(cb) {
-        // `list Artist` en Go para la DB completa, fallback a dedup local
-        if (!MpdConnection.connected) {
-            _listArtistsLocal(cb)
-            return
-        }
-        MpdConnection.sendJson("artists", {}, function(ev) {
-            if (!ev || !ev.ok || !ev.names || ev.names.length === 0) {
-                _listArtistsLocal(cb)
-                return
-            }
-            cb(ev.names.slice().sort())
-        })
-    }
-    function _listArtistsLocal(cb) {
-        cb(MpdLogic.listArtistsLocal(root.playlist))
-    }
-
-    function listAlbums(cb) {
-        if (!MpdConnection.connected) { _listAlbumsLocal(cb); return }
-        MpdConnection.sendJson("albums", {}, function(ev) {
-            if (!ev || !ev.ok || !ev.names || ev.names.length === 0) { _listAlbumsLocal(cb); return }
-            cb(ev.names.slice().sort())
-        })
-    }
-    function _listAlbumsLocal(cb) {
-        cb(MpdLogic.listAlbumsLocal(root.playlist))
-    }
-
-    function listPlaylists(cb) {
-        if (!MpdConnection.connected) { cb([]); return }
-        MpdConnection.sendJson("playlists", {}, function(ev) {
-            if (!ev || !ev.ok || !ev.names) { cb([]); return }
-            cb(ev.names)
-        })
-    }
-
-    function songsByFilter(type, value, cb) {
-        // Búsqueda en la DB vía daemon (parseo en Go), fallback local
-        var t = type.toLowerCase()
-        var q = value
-        var mpdTag = t
-        if (t === "artist") mpdTag = "Artist"
-        else if (t === "album") mpdTag = "Album"
-        else if (t === "title") mpdTag = "Title"
-        if (!MpdConnection.connected) {
-            _songsByFilterLocal(t, q, cb)
-            return
-        }
-        MpdConnection.sendJson("search", {tag: mpdTag, value: q, limit: 200}, function(ev) {
-            if (!ev || !ev.ok || !ev.items || ev.items.length === 0) {
-                _songsByFilterLocal(t, q, cb)
-                return
-            }
-            var result = []
-            for (var i = 0; i < ev.items.length; i++) {
-                var s = ev.items[i]
-                result.push({
-                    pos: i,
-                    title: s.title || s.file,
-                    artist: s.artist || "",
-                    album: s.album || "",
-                    file: s.file,
-                    duration: Math.round(s.duration || 0)
-                })
-            }
-            cb(result)
-        })
-    }
-    function _songsByFilterLocal(type, value, cb) {
-        cb(MpdLogic.songsByFilterLocal(root.playlist, type, value))
-    }
-
     // ── Filtros síncronos para Command Palette (mantener compat) ─────
     // Tope 300: la cola completa igual se muestra sin query.
     function filterPlaylist(query) {
         return MpdLogic.filterPlaylist(root.playlist, query, root.playlistPos)
-    }
-
-    function filterArtists(query) {
-        return MpdLogic.filterArtists(root.playlist, query)
-    }
-
-    function filterAlbums(query) {
-        return MpdLogic.filterAlbums(root.playlist, query)
-    }
-
-    function filterByArtist(artistName) {
-        return MpdLogic.filterByArtist(root.playlist, artistName, root.playlistPos)
-    }
-
-    function filterByAlbum(albumName) {
-        return MpdLogic.filterByAlbum(root.playlist, albumName, root.playlistPos)
     }
 
     function fmtTime(secs) {

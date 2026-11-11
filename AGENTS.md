@@ -9,13 +9,14 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 - Arranque: `shell.qml` (ShellRoot + `PanelPopupHost` + `AutoLazyLoader` para Hub/Settings)
 - Barra: `taskbar/Taskbar.qml`; `taskbar/groups/` (TaskList, TaskButton); `taskbar/jumplist/` (JumpList + ítems); `tray/` (SystemTrayArea, TrayIconPill)
 - Widgets de barra (`widgets/`): VolumeWidget, MprisWidget, DashWidget
-- Lógica pura (`logic/`): módulos JS sin dependencias de QML (`text.js`, `time.js`, `mpd.js`, `startmenu.js`, `keepass.js`)
+- Lógica pura (`logic/`): módulos JS sin dependencias de QML (`time.js`, `mpd.js`, `startmenu.js`)
 
 ### Popups (`popups/`, ventanas que se lanzan)
 - Lanzador AppMenu/Clipboard: `LauncherPopup.qml` → `components/appmenu/`, `components/clipboard/`, `state/ClipboardState.qml`
 - OSD vol/brillo/power: `OsdSliderPopup.qml` (modo lo pone el IPC) → `state/AudioState.qml`, `state/BrightState.qml`
-- Hub (música, calc, claves): `HubPopup.qml` → `components/mpd/`, `components/hub/`, `components/keepass/`, `state/MpdState.qml`, `MpdConnection.qml`, `KeePassState.qml`, `CalculatorState.qml`
+- Hub (música, calc): `HubPopup.qml` → `components/mpd/`, `components/hub/`, `state/MpdState.qml`, `MpdConnection.qml`, `CalculatorState.qml`
 - Música MPRIS: `MusicPopup.qml` → `state/MprisState.qml`
+- Música MPD (cola): `MpdPopup.qml` — panel `mpd` de PanelPopupHost → `components/mpd/CpMpdView` (PanelList + wash del cover), `state/MpdState.qml`, `MpdConnection.qml`
 - Centro de control: `ControlCenterNew.qml` → `state/WifiState.qml`, `BrightState.qml`, `MonitorState.qml`, `components/pomodoro/`
 - Ajustes: `SettingsPopup.qml` → `components/settings/`, `state/SettingsState.qml`, `WallpaperState.qml`, `ThemeState.qml`
 - Notas: `NotesSidebar.qml` → `state/NotesState.qml`
@@ -24,8 +25,8 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 ### Base reutilizable (`components/`)
 - Marcos de popup: `PopupShell`, `WipePopupShell`, `PanelPopupHost` (superficie global de los paneles grandes), `ConvexPopupShape`, `DismissOverlay`, `PopupDrawer`, `Drawer`
 - Carga diferida: `AutoLazyLoader`
-- Controles: `PillButton`, `ValueSlider`, `SeekBar`, `Badge`, `AppTextInput`, `SmartSearchInput`, `PanelList`, `Mouse`
-- Subcarpetas con su `qmldir`: `appmenu/`, `clipboard/`, `hub/`, `mpd/`, `keepass/`, `pomodoro/`, `settings/`
+- Controles: `PillButton`, `ValueSlider`, `SeekBar`, `Badge`, `AppTextInput`, `SmartSearchInput`, `PanelList` (lista genérica: nav teclado, estados vacío/cargando, **hover = selección por norma** — `hoverSelects: false` para opt-out por popup; delegados con hover propio deben suprimirlo si su fila está seleccionada), `DropdownMenu` (menú flotante: items `{id,label,icon,danger}`, `selectedId`, pointer solo en filas, `rowDelegate` para filas custom), `Mouse`
+- Subcarpetas con su `qmldir`: `appmenu/`, `clipboard/`, `hub/`, `mpd/`, `pomodoro/`, `settings/`
 
 ### Estado y diseño (`state/`, singletons con línea en `state/qmldir`)
 - Diseño: `Style.qml` (siempre usarlo), `Config.qml`, `Icons.qml`
@@ -36,7 +37,7 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 `AppMenuIpc` (command-palette), `BrightIpc` (bright), `ClipboardIpc` (clipboard), `MpdIpc` (mpd), `NotesIpc` (notes), `PowerIpc` (power), `VolumeIpc` (vol)
 
 ### Go (`services/`, cada carpeta es un módulo propio)
-`daemons/` (servicios bright, keepass, mpd, search), `calc/`, `qsipc/`, `theming/` (gtk-apply, shell-theme, matugen-apply)
+`daemons/` (servicios bright, mpd, search), `calc/`, `qsipc/`, `theming/` (gtk-apply, shell-theme, matugen-apply)
 
 ## Comandos (usarlos para verificar)
 
@@ -74,7 +75,7 @@ qs ipc call clipboard toggle
 
 - Estado compartido solo en singletons de `state/`. Persistencia solo vía `SettingsState.markDirty()`. Procesos: `Process{}` nunca síncronos, solo si no hay API nativa, y siempre centralizados en `state/` (la UI no accede al sistema directamente). Lógica pura reutilizable en `logic/*.js`.
 - Popups nuevos con superficie propia (OSD, Notificaciones, Hub, Settings): `AutoLazyLoader` en `shell.qml` + patrón `_animReady` + `mask: isOpen ? <region> : emptyMask`.
-- Paneles grandes (Launcher, JumpList, Music, ControlCenter): NO ventana propia. Se agregan como vista `Item` en `components/PanelPopupHost.qml` (API `viewWidth`, `viewHeight`, `viewX`, `viewExclusiveFocus`, `viewOpen`) + entrada en `_CONFIGS`, y se abren con `TaskbarState.openPanel("<nombre>")` (slot único `TaskbarState.panel`, exclusividad last-wins).
+- Paneles grandes (Launcher, JumpList, Music, ControlCenter, Mpd): NO ventana propia. Se agregan como vista `Item` en `components/PanelPopupHost.qml` (API `viewWidth`, `viewHeight`, `viewX`, `viewExclusiveFocus`, `viewOpen`) + entrada en `_CONFIGS`, y se abren con `TaskbarState.openPanel("<nombre>")` (slot único `TaskbarState.panel`, exclusividad last-wins).
 - IPC nuevo: un archivo en `ipc/` + línea en `shell.qml`; las funciones devuelven string.
 - Al borrar un `.qml`, borrar su línea del `qmldir` y grepear referencias (`rg -n "Nombre"`).
 - Respuestas cortas y directas, en español. Al citar código usar `ruta:línea`.

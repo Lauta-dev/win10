@@ -1,5 +1,6 @@
-// MpdIpc.qml — IPC handlers para MPD. Abrir/cerrar van al tab Música del
-// HubPopup (lazy vía activePopup="hub"); controles directo a MpdState.
+// MpdIpc.qml — IPC handlers para MPD. Abrir/cerrar van al panel "mpd" de
+// PanelPopupHost (TaskbarState.openPanel/closePanel); controles directo a
+// MpdState.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -9,23 +10,20 @@ Item {
     IpcHandler {
         target: "mpd"
         function toggle(): string {
-            if (TaskbarState.activePopup === "hub" && TaskbarState.hubTab === TaskbarState.hubTabMpd) {
-                TaskbarState.activePopup = ""
+            if (TaskbarState.panel === "mpd") {
+                TaskbarState.closePanel("mpd")
                 return "closed"
             }
-            TaskbarState.hubTab = TaskbarState.hubTabMpd
-            TaskbarState.activePopup = "hub"
+            TaskbarState.openPanel("mpd")
             return "opened mpd"
         }
         function open(): string {
-            if (TaskbarState.activePopup === "hub" && TaskbarState.hubTab === TaskbarState.hubTabMpd) return "already open"
-            TaskbarState.hubTab = TaskbarState.hubTabMpd
-            TaskbarState.activePopup = "hub"
+            if (TaskbarState.panel === "mpd") return "already open"
+            TaskbarState.openPanel("mpd")
             return "opened mpd"
         }
         function close(): string {
-            if (TaskbarState.activePopup === "hub")
-                TaskbarState.activePopup = ""
+            TaskbarState.closePanel("mpd")
             return "ok"
         }
         function play()        { MpdState.play(); return "ok" }

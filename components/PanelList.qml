@@ -2,6 +2,10 @@
 // Soporta estado vacío, estado cargando, navegación por teclado,
 // y buscador opcional en la parte inferior.
 //
+// Hover = selección (norma): pasar el mouse por una fila mueve el
+// currentIndex, así mouse y teclado comparten UN solo focus (la pill
+// del highlight). Opt-out por vista: hoverSelects: false.
+//
 // Uso mínimo:
 //   PanelList {
 //       model:    myArray
@@ -84,6 +88,12 @@ Item {
     property bool inverted: true // true = BottomToTop (command palette), false = TopToBottom (playlist)
     signal itemActivated(int index)
 
+    // ── API — hover como selección (norma) ────────────────────────────────────
+    // Pasar el mouse por una fila mueve el currentIndex (focus único para
+    // mouse y teclado). Los delegados que pintan hover propio deben
+    // suprimirlo cuando su fila está seleccionada (isSelected/highlighted).
+    property bool hoverSelects: true
+
     // ── API — delegate ────────────────────────────────────────────────────────
     property Component delegate
 
@@ -132,6 +142,14 @@ Item {
         }
     }
     function clearSearch()      { searchInput.clear(); root.searchText = "" }
+
+    // Hover: índice bajo el cursor (coords de contenido). Un gap del
+    // spacing devuelve -1 y no toca la selección.
+    function _hoverIndexAt(x, y) {
+        if (_count === 0) return
+        var idx = listView.indexAt(x, y + listView.contentY)
+        if (idx >= 0 && idx < _count) listView.currentIndex = idx
+    }
 
     // ── Foco inicial + type-to-focus (compartido por todas las vistas) ───────
     // focusInitial(): con texto, foco al buscador; vacío, foco a la lista
@@ -235,6 +253,18 @@ Item {
             }
 
             delegate: root.delegate
+        }
+
+        // Hover = selección (norma; opt-out con hoverSelects: false).
+        // NoButton: no intercepta clicks ni rueda (pasan a los delegados
+        // y al ListView); solo observa posición. Los HoverHandler de los
+        // delegados coexisten (el hover no es exclusivo como el click).
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.NoButton
+            enabled: root.hoverSelects && listView.visible
+            onPositionChanged: mouse => root._hoverIndexAt(mouse.x, mouse.y)
         }
     }
 

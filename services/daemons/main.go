@@ -2,9 +2,9 @@
 // Cada servicio mantiene su protocolo NDJSON por stdin/stdout; solo
 // cambia el arranque: `daemons <servicio> [flags...]`.
 //
-// Uso: daemons <mpd|keepass|bright|search> [flags...] | daemons version
-// QML: [bin/daemon, "mpd", "run"], [bin/daemon, "keepass", "--db", path],
-//      [bin/daemon, "bright", "run"], [bin/daemon, "search", "run"]
+// Uso: daemons <mpd|bright|search> [flags...] | daemons version
+// QML: [bin/daemon, "mpd", "run"], [bin/daemon, "bright", "run"],
+//      [bin/daemon, "search", "run"]
 package main
 
 import (
@@ -12,13 +12,12 @@ import (
 	"os"
 
 	"daemons/service/bright"
-	"daemons/service/keepass"
 	"daemons/service/mpd"
 	"daemons/service/search"
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "uso: daemons <mpd|keepass|bright|search> [flags...] | daemons version")
+	fmt.Fprintln(os.Stderr, "uso: daemons <mpd|bright|search> [flags...] | daemons version")
 }
 
 func main() {
@@ -31,8 +30,6 @@ func main() {
 	switch svc {
 	case "mpd":
 		code = mpd.Main(rest)
-	case "keepass":
-		code = keepass.Main(rest)
 	case "bright":
 		code = bright.Main(rest)
 	case "search":

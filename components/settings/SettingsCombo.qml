@@ -137,6 +137,7 @@ ComboBox {
         Mouse {
             id: rowMouse
             anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
             onClicked: {
                 control.currentIndex = item.index
                 control.activated(item.index)

@@ -138,7 +138,7 @@ Singleton {
     })
 
     // Daemon Go (`bin/daemon search run`): índice en memoria del home,
-    // protocolo NDJSON por stdin/stdout (igual que mpd/keepass/bright).
+    // protocolo NDJSON por stdin/stdout (igual que mpd/bright).
     // Arranca bajo demanda al consultar y se apaga por inactividad.
     readonly property string _daemonBin: Qt.resolvedUrl("../bin/daemon").toString().replace("file://", "")
     property bool _searchReady: false

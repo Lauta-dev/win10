@@ -50,7 +50,7 @@ Singleton {
     // Un solo slot para los paneles grandes: exclusividad last-wins — al
     // abrir uno, el anterior se limpia al instante (sin wipe de salida).
     // Cambiar entre paneles con la superficie abierta cambia el contenido
-    // en seco (sin re-animar). "" | "launcher" | "jumplist" | "music" | "controlcenter"
+    // en seco (sin re-animar). "" | "launcher" | "jumplist" | "music" | "controlcenter" | "mpd"
     property string panel: ""
     function openPanel(name: string)  { panel = name }
     function closePanel(name) {
@@ -65,9 +65,6 @@ Singleton {
     readonly property bool clipOpen: showLauncher && launcherMode === "clip"
     function _showLauncher(mode) { launcherMode = mode; openPanel("launcher") }
     function _hideLauncher()     { closePanel("launcher") }
-
-    // Prefijo de subvistas en buscadores ("...", ">...").
-    readonly property string searchPrefix: ">"
 
     // ── Notes Sidebar ────────────────────────────────────────────────────
     property bool showNotesSidebar: false
@@ -85,7 +82,6 @@ Singleton {
     property int hubTab: 0
     readonly property int hubTabMpd: 0
     readonly property int hubTabCalc: 1
-    readonly property int hubTabKeepass: 2
 
 
     // ── JumpList: popup único compartido por todos los ítems de la tasklist ─

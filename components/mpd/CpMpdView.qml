@@ -1,3 +1,21 @@
+// CpMpdView.qml — Vista MPD: cola única sobre PanelList (compartida por
+// el panel "mpd" de PanelPopupHost y el tab Música del Hub).
+//
+// Diseño:
+//   - Sin subvistas ni prefijos (`>` retirado): solo cola + filtro de texto.
+//   - Sin restauración de posición al reabrir: el panel entra siempre en
+//     la primera fila (PanelList) y no sigue/salta al track sonando.
+//   - Recientes (CpRecentStrip): slot estático con fallback — skeletons
+//     mientras espera datos o con el daemon apagado; cartas con datos; se
+//     oculta solo si el daemon activo respondió sin recientes.
+//   - Slots estáticos: buscador, sidebar y recientes están siempre presentes
+//     (la vista no se reflowea cuando el daemon conecta después de abrir).
+//   - Cover full-bleed en la sidebar derecha (sin padding externo; los
+//     controles conservan su margen interno).
+//   - Focus único: el hover mueve el currentIndex (norma hoverSelects del
+//     PanelList); el delegado no pinta hover propio. La fila sonando se
+//     distingue con wash del cover (y pill sólida con playingBg).
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -9,13 +27,14 @@ Item {
 
     property bool active: false
     property bool running: false
+    // Bg sólido en la fila en reproducción (opt-in; lo usa MpdPopup).
+    property bool playingRowBg: false
 
     signal escapeEmpty()
     signal backToRoot()
     signal focusWrapper()
 
     readonly property string searchText: mpdList.searchText
-    readonly property string sub: MpdState.subFor(searchText) || MpdState.resolveSub(searchText)
     readonly property real _pos: MpdState.elapsed
 
     function moveUp() { mpdList.moveUp() }
@@ -29,17 +48,6 @@ Item {
     function enter() {
         mpdList.clearSearch()
         filterMpd("")
-        mpdList.highlightDuration = 0
-        Qt.callLater(function() { restorePos() })
-    }
-
-    function savePos() {
-        if (!root.active || inSubView || mpdList.searchText.trim() !== "") return
-        var idx = mpdList.currentIndex
-        if (idx < 0 || idx >= items.length) return
-        _savedFile = items[idx].file || ""
-        _savedIndex = idx
-        _savedY = mpdList.listView.contentY
     }
 
     readonly property string bgSource: MprisState.mpdArtUrl !== "" ? MprisState.mpdArtUrl.replace(/#/g, "%23") : ""
@@ -111,19 +119,6 @@ Item {
 
     property var items: []
     property string _lastQuery: ""
-    property int _savedIndex: -1
-    property string _savedFile: ""
-    property real _savedY: 0
-
-    readonly property var subcategories: [
-        { isCategory: true, category: MpdState.subPlaylist, name: "Playlist", description: "Playlists guardadas", icon: Icons.musicNote },
-        { isCategory: true, category: MpdState.subArtist,   name: "Artist",   description: "Buscar por artista", icon: Icons.musicPlayer },
-        { isCategory: true, category: MpdState.subAlbum,    name: "Album",    description: "Buscar por álbum", icon: Icons.image },
-        { isCategory: true, category: MpdState.subPlDelete, name: "Delete Playlist", description: "Eliminar playlist guardada", icon: Icons.trash }
-    ]
-
-    readonly property bool inSubView: mpdList.searchText.trim().startsWith(TaskbarState.searchPrefix)
-    readonly property bool inCategories: mpdList.searchText.trim() === TaskbarState.searchPrefix
 
     function sameItems(a, b) {
         if (!a || !b || a.length !== b.length) return false
@@ -134,94 +129,13 @@ Item {
         return true
     }
 
-    function focusPlaying() {
-        var idx = -1
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].pos === MpdState.playlistPos) { idx = i; break }
-        }
-        if (idx >= 0) mpdList.selectIndex(idx)
-        else mpdList.selectFirst()
-    }
-
-    function restorePos() {
-        var idx = -1
-        if (_savedFile !== "") {
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].file === _savedFile) { idx = i; break }
-            }
-        }
-        if (idx < 0 && _savedIndex >= 0 && _savedIndex < items.length) idx = _savedIndex
-        if (idx < 0) {
-            focusPlaying()
-            mpdList.highlightDuration = 180
-            return
-        }
-        mpdList.selectIndex(idx)
-        var y = _savedY
-        Qt.callLater(function() {
-            mpdList.listView.contentY = y
-            mpdList.highlightDuration = 180
-        })
-    }
-
     function filterMpd(q) {
         var text = q.trim()
-        var px = TaskbarState.searchPrefix
-        if (text === px) return
-        var sub = MpdState.subFor(text) || MpdState.resolveSub(text)
-        var rawQuery = text.replace(new RegExp("^" + px + "\\w+\\s*"), "").trim()
-        var query = rawQuery.toLowerCase()
-        var cacheKey = (sub || "_root") + "|" + query
+        var query = text.toLowerCase()
+        var cacheKey = "_root|" + query
         if (cacheKey === _lastQuery) return
         _lastQuery = cacheKey
 
-        if (!sub && text.startsWith(px)) { items = []; return }
-
-        if (sub === MpdState.subPlaylist || sub === MpdState.subPlDelete) {
-            items = MpdState.savedPlaylists.filter(p => query === "" || p.name.toLowerCase().indexOf(query) >= 0)
-            Qt.callLater(function(){ mpdList.selectFirst() })
-            return
-        }
-        if (sub === MpdState.subArtist) {
-            if (query === "") {
-                MpdState.listArtists(function(list){
-                    items = list.map(function(a){ return { name: a, query: a } })
-                    Qt.callLater(function(){ mpdList.selectFirst() })
-                })
-            } else {
-                MpdState.songsByFilter(MpdState.subArtist, rawQuery, function(songs){
-                    if (songs.length > 0) {
-                        items = songs.map(function(s){
-                            return { name: s.title || s.file, title: s.title, artist: s.artist, album: s.album, file: s.file, pos: s.pos, duration: s.duration, isPlaying: false, query: s.artist }
-                        })
-                    } else {
-                        items = MpdState.filterArtists(query)
-                    }
-                    Qt.callLater(function(){ mpdList.selectFirst() })
-                })
-            }
-            return
-        }
-        if (sub === MpdState.subAlbum) {
-            if (query === "") {
-                MpdState.listAlbums(function(list){
-                    items = list.map(function(a){ return { name: a, query: a } })
-                    Qt.callLater(function(){ mpdList.selectFirst() })
-                })
-            } else {
-                MpdState.songsByFilter(MpdState.subAlbum, rawQuery, function(songs){
-                    if (songs.length > 0) {
-                        items = songs.map(function(s){
-                            return { name: s.title || s.file, title: s.title, artist: s.artist, album: s.album, file: s.file, pos: s.pos, duration: s.duration, isPlaying: false, query: s.album }
-                        })
-                    } else {
-                        items = MpdState.filterAlbums(query)
-                    }
-                    Qt.callLater(function(){ mpdList.selectFirst() })
-                })
-            }
-            return
-        }
         if (query === "") {
             var all = MpdState.playlist
             var mapped = all.map(function(s){
@@ -229,9 +143,8 @@ Item {
             })
             if (sameItems(items, mapped)) return
             items = mapped
-            Qt.callLater(function(){ focusPlaying() })
         } else {
-            var fitems = MpdState.filterPlaylist(rawQuery).map(function(s){
+            var fitems = MpdState.filterPlaylist(text).map(function(s){
                 return { pos: s.pos, title: s.title, artist: s.artist, album: s.album, file: s.file, duration: s.duration, isPlaying: s.isPlaying, name: s.title || s.name || s.file, query: s.file }
             })
             if (sameItems(items, fitems)) return
@@ -241,45 +154,12 @@ Item {
     }
 
     function activateItem(item) {
-        var sub = MpdState.subFor(mpdList.searchText) || MpdState.resolveSub(mpdList.searchText)
-        if (sub === MpdState.subPlaylist) MpdState.playPlaylist(item.name)
-        else if (sub === MpdState.subPlDelete) { MpdState.deletePlaylist(item.name); Qt.callLater(() => { items = MpdState.savedPlaylists; mpdList.selectFirst() }) }
-        else if (sub === MpdState.subArtist) {
-            mpdList.searchInput.setText(TaskbarState.searchPrefix + MpdState.subArtist + " " + item.query + " ");
-            MpdState.songsByFilter(MpdState.subArtist, item.query, function(songs){
-                items = songs.map(function(s){ return { name: s.title || s.file, title: s.title, artist: s.artist, album: s.album, file: s.file, pos: s.pos, duration: s.duration, isPlaying: false, query: s.artist } })
-                Qt.callLater(function(){ mpdList.selectFirst() })
-            })
-        }
-        else if (sub === MpdState.subAlbum) {
-            mpdList.searchInput.setText(TaskbarState.searchPrefix + MpdState.subAlbum + " " + item.query + " ");
-            MpdState.songsByFilter(MpdState.subAlbum, item.query, function(songs){
-                items = songs.map(function(s){ return { name: s.title || s.file, title: s.title, artist: s.artist, album: s.album, file: s.file, pos: s.pos, duration: s.duration, isPlaying: false, query: s.album } })
-                Qt.callLater(function(){ mpdList.selectFirst() })
-            })
-        }
-        else {
-            if (item.file && (item.pos === -1 || item.pos === undefined)) MpdState.addAndPlay(item.file)
-            else MpdState.playFromPosition(item.pos)
-        }
-    }
-
-    function activateFilterItem(q) {
-        var sub = MpdState.subFor(mpdList.searchText) || MpdState.resolveSub(mpdList.searchText)
-        if (sub === MpdState.subPlaylist) MpdState.playPlaylist(q)
-        else if (sub === MpdState.subPlDelete) { MpdState.deletePlaylist(q); Qt.callLater(() => { items = MpdState.savedPlaylists; mpdList.selectFirst() }) }
-        else {
-            mpdList.searchInput.setText(TaskbarState.searchPrefix + sub + " " + q + " ");
-            MpdState.songsByFilter(sub, q, function(songs){
-                items = songs.map(function(s){ return { name: s.title || s.file, title: s.title, artist: s.artist, album: s.album, file: s.file, pos: s.pos, duration: s.duration, isPlaying: false, query: sub === MpdState.subArtist ? s.artist : s.album } })
-                Qt.callLater(function(){ mpdList.selectFirst() })
-            })
-        }
+        if (item.file && (item.pos === -1 || item.pos === undefined)) MpdState.addAndPlay(item.file)
+        else MpdState.playFromPosition(item.pos)
     }
 
     Connections {
         target: MpdState
-        property bool entering: false
         function onDaemonRunningChanged() {
             if (MpdState.daemonRunning && root.active)
                 Qt.callLater(function() { root.focusSearch() })
@@ -287,31 +167,8 @@ Item {
         function onPlaylistChanged() {
             if (!root.active) return
             _lastQuery = "%%"; filterMpd(mpdList.searchText)
-            if (mpdList.searchText.trim() === "" || mpdList.searchText.trim() === TaskbarState.searchPrefix) {
-                entering = true
-                Qt.callLater(function() {
-                    focusPlaying()
-                    entering = false
-                })
-            } else {
-                var i = mpdList.currentIndex
-                Qt.callLater(() => mpdList.selectIndex(i))
-            }
-        }
-        function onPlaylistPosChanged() {
-            if (!root.active || root.inSubView) return
-            var t = mpdList.searchText.trim()
-            if (t !== "" && t !== TaskbarState.searchPrefix) return
-            var pos = MpdState.playlistPos
-            if (pos === undefined || pos === null || pos < 0) return
-            var idx = -1
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].pos === pos) { idx = i; break }
-            }
-            if (idx < 0) return
-            var lv = mpdList.listView
-            if (lv.currentIndex !== idx) mpdList.selectIndex(idx)
-            lv.positionViewAtIndex(idx, ListView.Contain)
+            var i = mpdList.currentIndex
+            Qt.callLater(() => mpdList.selectIndex(i))
         }
     }
 
@@ -333,9 +190,12 @@ Item {
 
         CpRecentStrip {
             Layout.fillWidth: true
-            visible: MpdState.daemonRunning && !root.inSubView && mpdList.searchText.trim() === "" && MpdState.recentSongs.length > 0
-            items: MpdState.recentSongs
-            loading: MpdState.recentSongs.length === 0
+            // Slot estático con fallback: con MPD inactivo muestra skeletons
+            // (items vacíos + loading); se oculta solo si el daemon está
+            // activo y respondió sin recientes.
+            visible: MpdState.daemonRunning || MpdState.recentSongs.length > 0 || !MpdState.recentLoaded
+            items: MpdState.daemonRunning ? MpdState.recentSongs : []
+            loading: !MpdState.daemonRunning || MpdState.recentSongs.length === 0
             accent: root.tint
             textAccent: root.tintText
             onTrackRequested: file => MpdState.playFile(file)
@@ -344,19 +204,9 @@ Item {
         PanelList {
             id: mpdList
             Layout.fillWidth: true; Layout.fillHeight: true
-            model: root.inCategories ? root.subcategories : root.items
+            model: root.items
             showSearch: false
-            searchPlaceholder: {
-                if (root.inCategories) return "Seleccionar categoría…"
-                if (root.inSubView) {
-                    if (root.sub === MpdState.subPlaylist) return "Buscar playlist…"
-                    if (root.sub === MpdState.subArtist) return "Buscar artista…"
-                    if (root.sub === MpdState.subAlbum) return "Buscar álbum…"
-                    if (root.sub === MpdState.subPlDelete) return "Eliminar playlist…"
-                    return "Prefijo desconocido…"
-                }
-                return "Buscar música  ·  > para filtrar…"
-            }
+            searchPlaceholder: "Buscar música…"
             preserveIndexOnModelChange: true
             highlightDuration: 180
             accent: root.tint
@@ -379,11 +229,7 @@ Item {
             delegate: Loader {
                 width: ListView.view ? ListView.view.width : 640
                 required property var modelData; required property int index
-                sourceComponent: {
-                    if (root.inCategories) return categoryComponent
-                    if (root.inSubView && root.sub !== "") return mpdFilterComponent
-                    return mpdComponent
-                }
+                sourceComponent: mpdComponent
                 Binding { target: item; property: "itemData"; value: modelData; when: status === Loader.Ready }
                 Binding { target: item; property: "itemIndex"; value: index; when: status === Loader.Ready }
                 Binding { target: item; property: "isSelected"; value: mpdList.currentIndex === index; when: status === Loader.Ready }
@@ -393,14 +239,15 @@ Item {
                 Binding { target: item; property: "textAccent"; value: root.tintText; when: status === Loader.Ready && item && item.hasOwnProperty("textAccent") }
                 Binding { target: item; property: "hoverColor"; value: root.hover; when: status === Loader.Ready && item && item.hasOwnProperty("hoverColor") }
                 Binding { target: item; property: "useAccent"; value: true; when: status === Loader.Ready && item && item.hasOwnProperty("useAccent") }
+                Binding { target: item; property: "playingBg"; value: root.playingRowBg; when: status === Loader.Ready && item && item.hasOwnProperty("playingBg") }
             }
         }
 
         SmartSearchInput {
             id: mpdSearchInput
             bgColor: Style.surface_container
-            // Sin daemon no hay con qué interactuar: se oculta (colapsa en el layout).
-            visible: MpdState.daemonRunning
+            // Siempre visible: los slots de la vista son estáticos para que
+            // nada se reflowee cuando el daemon conecta después de abrir.
             Layout.fillWidth: true
             Layout.leftMargin: 10; Layout.rightMargin: 10
             Layout.bottomMargin: 10
@@ -409,11 +256,6 @@ Item {
             text: mpdList.searchText
             onQueryChanged: text => {
                 mpdList.searchText = text
-                if (text === TaskbarState.searchPrefix) {
-                    items = subcategories
-                    mpdList.selectFirst()
-                    return
-                }
                 _lastQuery = "%%"
                 filterMpd(text)
                 mpdList.selectFirst()
@@ -433,29 +275,28 @@ Item {
         }
         } // ← cierra la columna izquierda
 
-        // ── Sidebar derecho fijo: cover full-h + degradado + controles ──
+        // ── Sidebar derecho: cover full-bleed + degradado + controles ──
+        // (slot estático: visible aunque el daemon no esté conectado)
         Rectangle {
             Layout.preferredWidth: 264; Layout.fillHeight: true
-            Layout.leftMargin: 10; Layout.rightMargin: 12
-            Layout.topMargin: 8; Layout.bottomMargin: 10
-            visible: MpdState.daemonRunning || MpdState.playlist.length > 0
+            Layout.leftMargin: 10
             radius: 12
             color: root.card
             clip: true
 
-            // Cover inset con padding + contenido encima
+            // Cover a sangre (sin padding externo); el contenido lleva
+            // su propio margen interno.
             Item {
                 anchors.fill: parent
-                anchors.margins: 10
                 clip: true
 
                 Rectangle {
-                    anchors.fill: parent; radius: 18
+                    anchors.fill: parent; radius: 12
                     color: root.hover
                 }
                 RoundedImage {
                     anchors.fill: parent
-                    radius: 18
+                    radius: 12
                     source: root.bgSource
                     sourceSize: Qt.size(528, 0)
                     visible: root.bgSource !== ""
@@ -471,7 +312,7 @@ Item {
                     anchors.left: parent.left; anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     height: Math.min(parent.height * 0.55, 300)
-                    radius: 18
+                    radius: 12
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" }
                         GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.82) }
@@ -541,24 +382,8 @@ Item {
         }
     }
 
-    Component {
-        id: categoryComponent
-        CpCategoryDelegate {
-            onCategorySelected: cat => {
-                mpdList.searchInput.setText(TaskbarState.searchPrefix + cat + " ")
-                Qt.callLater(function() { mpdList.forceSearchFocus(); mpdList.selectFirst() })
-            }
-        }
-    }
     Component { id: mpdComponent; CpMpdDelegate { panelWidth: 640; onTrackActivated: (pos, file) => {
                 if (file && (pos === -1 || pos === undefined)) MpdState.addAndPlay(file)
                 else MpdState.playFromPosition(pos)
             } } }
-    Component {
-        id: mpdFilterComponent
-        CpMpdFilterDelegate {
-            panelWidth: 640
-            onItemActivated: q => activateFilterItem(q)
-        }
-    }
 }
