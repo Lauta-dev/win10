@@ -19,7 +19,7 @@
 
 <div align="center">
 
-<img src="public/1794432189.png" width="900" alt="win10 en labwc"/>
+<img src="public/1794432189.webp" width="900" alt="win10 en labwc"/>
 
 <em>La barra en labwc: widget MPRIS con cover, apps pineadas, volumen, WiFi y reloj.</em>
 
@@ -47,15 +47,15 @@
 
 | 🚀 **AppMenu** <br><sub>búsqueda fuzzy, recientes y pineados</sub> | 📋 **Portapapeles** <br><sub>historial cliphist + previews</sub> |
 |:---:|:---:|
-| [<img src="public/1794432384.png" width="480" alt="AppMenu"/>](public/1794432384.png) | [<img src="public/1794432388.png" width="480" alt="Clipboard"/>](public/1794432388.png) |
+| [<img src="public/1794432384.webp" width="480" alt="AppMenu"/>](public/1794432384.webp) | [<img src="public/1794432388.webp" width="480" alt="Clipboard"/>](public/1794432388.webp) |
 
 | ⚙️ **Centro de control** <br><sub>oscuro/nocturno, brillo, pomodoro</sub> | 🌗 **Ajustes · Apariencia** <br><sub>wallpaper con matugen, GTK, iconos</sub> |
 |:---:|:---:|
-| [<img src="public/1794432393.png" width="480" alt="Centro de control"/>](public/1794432393.png) | [<img src="public/1794432400.png" width="480" alt="Ajustes"/>](public/1794432400.png) |
+| [<img src="public/1794432393.webp" width="480" alt="Centro de control"/>](public/1794432393.webp) | [<img src="public/1794432400.webp" width="480" alt="Ajustes"/>](public/1794432400.webp) |
 
 | 🎧 **Panel MPD** <br><sub>cola + recientes (skeleton de espera)</sub> | 🖥️ **Ajustes · Monitores** <br><sub>organizar pantallas, espejo/extendido</sub> |
 |:---:|:---:|
-| [<img src="public/1794432405.png" width="480" alt="Panel MPD"/>](public/1794432405.png) | [<img src="public/1794432721.png" width="480" alt="Monitores"/>](public/1794432721.png) |
+| [<img src="public/1794432405.webp" width="480" alt="Panel MPD"/>](public/1794432405.webp) | [<img src="public/1794432721.webp" width="480" alt="Monitores"/>](public/1794432721.webp) |
 
 ---
 
