@@ -43,17 +43,19 @@
 
 ## 📸 Capturas
 
-| 🚀 **AppMenu** | 📋 **Portapapeles** |
-|:---:|:---:|
-| <img src="public/1794432384.png" width="480" alt="AppMenu"/> | <img src="public/1794432388.png" width="480" alt="Clipboard"/> |
+<sub>Click en una captura para verla a tamaño completo.</sub>
 
-| ⚙️ **Centro de control** | 🌗 **Ajustes · Apariencia** |
+| 🚀 **AppMenu** <br><sub>búsqueda fuzzy, recientes y pineados</sub> | 📋 **Portapapeles** <br><sub>historial cliphist + previews</sub> |
 |:---:|:---:|
-| <img src="public/1794432393.png" width="480" alt="Centro de control"/> | <img src="public/1794432400.png" width="480" alt="Ajustes"/> |
+| [<img src="public/1794432384.png" width="480" alt="AppMenu"/>](public/1794432384.png) | [<img src="public/1794432388.png" width="480" alt="Clipboard"/>](public/1794432388.png) |
 
-| 🎧 **Panel MPD** — cola + recientes (skeleton de espera) | 🖥️ **Ajustes · Monitores** — organizar pantallas, espejo/extendido, posición |
+| ⚙️ **Centro de control** <br><sub>oscuro/nocturno, brillo, pomodoro</sub> | 🌗 **Ajustes · Apariencia** <br><sub>wallpaper con matugen, GTK, iconos</sub> |
 |:---:|:---:|
-| <img src="public/1794432405.png" width="480" alt="Panel MPD"/> | <img src="public/1794432721.png" width="480" alt="Monitores"/> |
+| [<img src="public/1794432393.png" width="480" alt="Centro de control"/>](public/1794432393.png) | [<img src="public/1794432400.png" width="480" alt="Ajustes"/>](public/1794432400.png) |
+
+| 🎧 **Panel MPD** <br><sub>cola + recientes (skeleton de espera)</sub> | 🖥️ **Ajustes · Monitores** <br><sub>organizar pantallas, espejo/extendido</sub> |
+|:---:|:---:|
+| [<img src="public/1794432405.png" width="480" alt="Panel MPD"/>](public/1794432405.png) | [<img src="public/1794432721.png" width="480" alt="Monitores"/>](public/1794432721.png) |
 
 ---
 
