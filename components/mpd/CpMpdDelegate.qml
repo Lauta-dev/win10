@@ -13,8 +13,7 @@ Item {
     property bool isPlaying: false
     property real progress: 0.0
     property int  panelWidth: 520
-    // Bg sólido para la fila en reproducción (opt-in: el Hub lo deja
-    // apagado y conserva solo el wash tenue).
+    // Bg sólido para la fila en reproducción (opt-in, default off).
     property bool playingBg: false
     property color textAccent: Style.primary
     property color hoverColor: Style.surface_container_highest

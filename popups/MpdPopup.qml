@@ -1,7 +1,6 @@
 // MpdPopup.qml — Vista MPD (cola) como panel "mpd" de PanelPopupHost.
 // Se abre por IPC (target "mpd" / openMpd) con TaskbarState.openPanel("mpd");
-// NO crea ventana propia: comparte la superficie del host. El Hub conserva
-// su tab Música.
+// NO crea ventana propia: comparte la superficie del host.
 //
 // El fondo sale del cover (CpMpdView tiñe con el arte del disco) y la fila
 // en reproducción lleva bg sólido (playingRowBg) para distinguirse del
@@ -32,7 +31,7 @@ Item {
         _updateMpdPolling()
     }
 
-    // ── MPD polling (consumidor "mpd", mismo patrón que el Hub) ──
+    // ── MPD polling (consumidor "mpd") ──
     Timer {
         id: syncRetryTimer
         interval: 700

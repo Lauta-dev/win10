@@ -1,5 +1,5 @@
 // NotesSidebar.qml — Bloc de notas simple: una nota con autoguardado
-// en ventana normal (SSD, igual que Settings/Hub). Sin tabs, sin browser,
+// en ventana normal (SSD, igual que Settings). Sin tabs, sin browser,
 // sin filetype: lo complejo va en mousepad. Todo cuadrado, sin radius.
 import QtQuick
 import QtQuick.Layouts

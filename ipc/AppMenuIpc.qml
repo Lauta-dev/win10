@@ -18,9 +18,8 @@ Item {
         function close()       { TaskbarState._hideLauncher() }
         function openClipboard() { TaskbarState._showLauncher("clip") }
         function openStartmenu() { root._toggleApp() }
-        // Hub (Música/Calc): un popup con tabs.
-        // MpdPopup (cola MPD): panel "mpd" de PanelPopupHost; el Hub
-        // conserva su tab Música.
+        // Paneles de PanelPopupHost: MpdPopup (cola MPD) y CalcPopup.
+        // El target "calc" también tiene toggle/open/close (CalcIpc).
         function openMpd(): string {
             if (TaskbarState.panel === "mpd") {
                 TaskbarState.closePanel("mpd")
@@ -31,13 +30,11 @@ Item {
         }
         function openMusic(): string { return openMpd() }
         function openCalc(): string {
-            if (TaskbarState.activePopup === "hub" && TaskbarState.hubTab === TaskbarState.hubTabCalc) {
-                TaskbarState.activePopup = ""
+            if (TaskbarState.panel === "calc") {
+                TaskbarState.closePanel("calc")
                 return "closed"
             }
-            TaskbarState._hideLauncher()
-            TaskbarState.hubTab = TaskbarState.hubTabCalc
-            TaskbarState.activePopup = "hub"
+            TaskbarState.openPanel("calc")
             return "opened calc"
         }
         function openCalculator(): string { return openCalc() }

@@ -1,4 +1,4 @@
-// PopupShell.qml — marco compartido Hub/Settings (extraído de ambos).
+// PopupShell.qml — marco de Settings (ventana FloatingWindow con drawer de tabs).
 //
 // Ventana NORMAL (FloatingWindow: toplevel xdg): labwc le pone sus
 // decoraciones (título + minimizar/maximizar/cerrar) y la posiciona.

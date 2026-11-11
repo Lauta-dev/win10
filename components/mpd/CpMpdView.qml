@@ -1,5 +1,5 @@
-// CpMpdView.qml — Vista MPD: cola única sobre PanelList (compartida por
-// el panel "mpd" de PanelPopupHost y el tab Música del Hub).
+// CpMpdView.qml — Vista MPD: cola única sobre PanelList (panel "mpd"
+// de PanelPopupHost).
 //
 // Diseño:
 //   - Sin subvistas ni prefijos (`>` retirado): solo cola + filtro de texto.

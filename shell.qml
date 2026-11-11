@@ -20,6 +20,7 @@ ShellRoot {
     VolumeIpc      {}
     PowerIpc       {}
     AppMenuIpc     {}
+    CalcIpc        {}
     ClipboardIpc   {}
     NotesIpc       {}
 
@@ -27,12 +28,6 @@ ShellRoot {
     AutoLazyLoader {
         condition: TaskbarState.activePopup === "settings"
         source: Component { SettingsPopup {} }
-    }
-    AutoLazyLoader {
-        condition: TaskbarState.activePopup === "hub"
-        sticky: false
-        unloadDelay: 550
-        source: Component { HubPopup {} }
     }
 
     AutoLazyLoader {

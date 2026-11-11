@@ -1,5 +1,5 @@
 // PanelPopupHost.qml — Superficie global única para los paneles grandes
-// (Launcher, JumpList, Music, ControlCenter, Mpd).
+// (Launcher, JumpList, Music, ControlCenter, Mpd, Calc).
 //
 // Es una instancia de WipePopupShell: hereda wipe, máscara, DismissOverlay
 // y keyboardFocus, así que los 4 paneles comparten UNA ventana layer-shell
@@ -34,7 +34,8 @@ WipePopupShell {
         "jumplist":      { position: "left",   sideMargin: 8,  width: 240, height: 320, radius: Style.popup_radius, openMs: 300, closeMs: 300 },
         "music":         { position: "left",   sideMargin: 8,  width: 396, height: 346, radius: Style.popup_radius, openMs: 240, closeMs: 200 },
         "controlcenter": { position: "right",  sideMargin: 10, width: 420, height: 560, radius: Style.popup_radius, openMs: 320, closeMs: 240 },
-        "mpd":           { position: "center", sideMargin: 8,  width: 900, height: 560, radius: Style.popup_radius, openMs: 280, closeMs: 220 }
+        "mpd":           { position: "center", sideMargin: 8,  width: 900, height: 560, radius: Style.popup_radius, openMs: 280, closeMs: 220 },
+        "calc":          { position: "center", sideMargin: 8,  width: 400, height: 620, radius: Style.popup_radius, openMs: 240, closeMs: 200 }
     })
 
     // Retención del panel en cierre: darle al wipe de salida el mismo box
@@ -68,6 +69,7 @@ WipePopupShell {
                             : shell._active === "music" ? lMusic.item
                             : shell._active === "controlcenter" ? lCC.item
                             : shell._active === "mpd" ? lMpd.item
+                            : shell._active === "calc" ? lCalc.item
                             : null
 
     // ── Shell ──
@@ -131,5 +133,11 @@ WipePopupShell {
         condition: TaskbarState.panel === "mpd"
         visible: shell._active === "mpd"
         source: Component { MpdPopup {} }
+    }
+    AutoLazyLoader {
+        id: lCalc
+        condition: TaskbarState.panel === "calc"
+        visible: shell._active === "calc"
+        source: Component { CalcPopup {} }
     }
 }

@@ -78,11 +78,6 @@ Singleton {
     property real   popupX:      0
     property int    settingsTab: 0
 
-    // ── Hub (Música/Calc/Claves): tab activo ────────────────
-    property int hubTab: 0
-    readonly property int hubTabMpd: 0
-    readonly property int hubTabCalc: 1
-
 
     // ── JumpList: popup único compartido por todos los ítems de la tasklist ─
     // activeJumpList conserva el appId al cerrar para que el contenido no

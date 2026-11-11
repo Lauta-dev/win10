@@ -63,12 +63,12 @@ shell_refactored/
 │   └── qmldir
 │
 ├── popups/                            # Paneles flotantes. Carga diferida via AutoLazyLoader.
-│   │                                  # Los 4 grandes (Launcher/JumpList/Music/CC) son vistas Item de
+│   │                                  # Los grandes (Launcher/JumpList/Music/CC/Mpd/Calc) son vistas Item de
 │   │                                  # components/PanelPopupHost (superficie única, slot TaskbarState.panel).
 │   │                                  # El resto usa components/WipePopupShell (wipe estilo minflair)
 │   │                                  # + fusión convex con la barra (ConvexPopupShape, flares, overscan 16px).
 │   ├── ControlCenterNew.qml           # Vista "controlcenter" del host (right): usuario, tiles, brillo, calendario/notif/pomodoro, wifi.
-│   ├── HubPopup.qml                   # Hub con tabs: Música (MPD) + Calc.
+│   ├── CalcPopup.qml                  # Panel Calc (PanelPopupHost): calculadora con IPC propio (target "calc").
 │   ├── MpdPopup.qml                   # Panel MPD (PanelPopupHost): CpMpdView
 │   │                                  # (cola sobre PanelList, focus único hover/teclado + fila sonando con bg sólido).
 │   ├── LauncherPopup.qml              # Vista "launcher": AppMenu/Clipboard por modo (sin reabrirse).
@@ -84,7 +84,7 @@ shell_refactored/
 ├── components/                        # Primitivos UI reutilizables. Sin lógica de negocio.
 │   ├── ConvexPopupShape.qml           # Shape convexo para fusión popup↔barra (radios direccionales + flares).
 │   ├── WipePopupShell.qml             # Shell genérico: superficie fija + wipe estilo minflair (flag, position, contentWidth/Height).
-│   ├── PanelPopupHost.qml             # Superficie global única de Launcher/JumpList/Music/CC/Mpd (API viewWidth/Height/X, _CONFIGS, retención en cierre).
+│   ├── PanelPopupHost.qml             # Superficie global única de Launcher/JumpList/Music/CC/Mpd/Calc (API viewWidth/Height/X, _CONFIGS, retención en cierre).
 │   ├── SeekBar.qml / MprisControl.qml  # Piezas MPRIS (seek, prev/play/next).
 │   ├── ValueSlider.qml                # Slider con ícono para popups (volumen global).
 │   ├── SmartSearchInput.qml           # Buscador con contador integrado (showSearchCounter).
@@ -115,17 +115,17 @@ shell_refactored/
 │   │   ├── AppMenuView.qml            # Vista apps del LauncherPopup: buscar, abrir y comandos (`>b`, `>ia`, `>sf`).
 │   │   ├── AppDelegate.qml            # Delegate de apps.
 │   │   └── qmldir
-│   ├── hub/                           # Vistas del Hub que quedaron acá (Calc).
-│   │   ├── CpCalcPanel.qml            # Calculadora del Hub.
+│   ├── calc/                          # Componentes de la calculadora (panel "calc" de PanelPopupHost).
+│   │   ├── CpCalcPanel.qml            # Calculadora: input + display en vivo + teclado.
 │   │   ├── CpCalcFraction.qml / CpCalcPie.qml
 │   │   └── qmldir
-│   ├── mpd/                           # Vista Música MPD (compartida: Hub tab + panel "mpd").
+│   ├── mpd/                           # Vista Música MPD (panel "mpd").
 │   │   ├── CpMpdView.qml              # Cola única sobre PanelList (sin subvistas `>`, sin restaurar posición),
 │   │   │                              # recientes persistentes, cover full-bleed tintado, focus único.
 │   │   ├── CpMpdDelegate.qml          # Fila de canción (wash/pill sonando, sin hover propio).
 │   │   ├── CpRecentStrip.qml          # Tira horizontal de agregados recientes (click reproduce).
 │   │   └── qmldir
-│   ├── pomodoro/                      # Pomodoro (Hub + centro de control).
+│   ├── pomodoro/                      # Pomodoro (centro de control).
 │   │   ├── PomodoroPanel.qml          # Ring + controles + ajustes.
 │   │   └── qmldir
 │   └── qmldir
