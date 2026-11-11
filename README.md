@@ -1,163 +1,234 @@
-# win10 — Windows 10 Taskbar para labwc / Wayland
+<div align="center">
 
-Barra de tareas estilo Windows 10 / ChromeOS Material You construida en **QuickShell + QML**.
-Compositor objetivo: **labwc** (Wayland, `wlr-layer-shell`).
+# 🪟 win10
+
+**Taskbar estilo Windows 10 / ChromeOS Material You** para **labwc** (Wayland · `wlr-layer-shell`)
+
+![stack](https://img.shields.io/badge/stack-QuickShell%20%C2%B7%20QML%20(Qt%206.7)-41CD52)
+![compositor](https://img.shields.io/badge/compositor-labwc%20(Wayland)-111111)
+![backend](https://img.shields.io/badge/backend-Go%201.24-00ADD8?logo=go&logoColor=white)
+![vibecoded](https://img.shields.io/badge/vibecoded-100%25%20by%20AI-8B5CF6)
+
+</div>
+
+> 🤖 **Proyecto 100% vibecoded — hecho por IA.** Todo el código (QML y Go) fue escrito
+> por un agente de IA (OpenCode) a partir de prompts del autor: *vibecoding*, sin código
+> escrito a mano. El agente mantiene este repo guiándose por [`AGENTS.md`](AGENTS.md)
+> (mapa de archivos, convenciones y verificación), así que el README y el código
+> suelen estar sincronizados por construcción.
+
+<div align="center">
+
+<img src="public/1794432189.png" width="900" alt="win10 en labwc"/>
+
+<em>La barra en labwc: widget MPRIS con cover, apps pineadas, volumen, WiFi y reloj.</em>
+
+</div>
 
 ---
 
-## Punto de entrada
+## ✨ Qué trae
 
-```
-shell.qml       ← ShellRoot — instancia todos los módulos, controla carga diferida
-manifest.json   ← { name: "win10", version: "1.0.0" }
-```
-
-`shell.qml` importa `./state`, `./components`, `./taskbar`, `./popups`, `./tray`, `./widgets`.
-`PanelPopupHost` es la superficie global única de los paneles grandes (Launcher, JumpList, Music, Control Center);
-el resto de los popups y menús se instancian con `AutoLazyLoader` la primera vez que se abren.
-
+| | |
+|:---|:---|
+| **🧱 Barra** | Pines con drag & drop, agrupado por app con badges de ventanas, tooltips, Jump List por hover/click, volumen con slider inline, slot MPRIS dinámico y dash del centro de control. |
+| **🚀 Launcher** | AppMenu con búsqueda fuzzy, recientes, pineados y comandos rápidos (`>b`, `>ia`, `>sf`) · historial de portapapeles (cliphist) con búsqueda estilo fzf y previews de imagen. |
+| **🧮 Calculadora** | Panel propio con resultado en vivo (evaluación async en Go) y fracciones exactas apiladas (num/den + gráfico de torta). |
+| **🎧 Música** | MPRIS multi-player (barra + popup) · MPD con cola sobre `PanelList`, agregados recientes y cover full-bleed tintado. |
+| **⚙️ Centro de control** | Usuario, tiles de ajustes, brillo, calendario/notificaciones, WiFi y pomodoro. |
+| **🌗 Ajustes** | Ventana SSD con drawer de tabs: apariencia (matugen desde el wallpaper), monitores, tema oscuro y modo nocturno. |
+| **El resto** | 🔔 OSD único (volumen/brillo/power) · 📝 notas con autoguardado y slash commands · 🔐 diálogo polkit. |
 
 ---
 
-## Árbol de archivos
+## 🏗️ Arquitectura
 
+```text
+shell.qml (ShellRoot)
+├── Taskbar ························ PanelWindow layer-shell anclada abajo
+│   ├── taskbar/   pines + ventanas + JumpList
+│   ├── widgets/   volumen · MPRIS · dash (CC)
+│   └── tray/      SystemTray + DashWidget
+│
+├── PanelPopupHost ················· UNA sola ventana layer-shell para todos los paneles
+│   ├── launcher       AppMenu │ Clipboard         ← target command-palette
+│   ├── jumplist       Jump List                   ← hover/click en la barra
+│   ├── music          MPRIS + cola MPD            ← widget MprisWidget
+│   ├── controlcenter  Centro de control           ← DashWidget
+│   ├── mpd            Cola MPD                    ← target mpd
+│   └── calc           Calculadora                 ← target calc
+│
+├── popups con superficie propia ··· OSD · Settings · Notes · Polkit (AutoLazyLoader)
+├── ipc/ ··························· targets de Quickshell IPC (los llaman los keybinds)
+├── state/ ························· singletons: TaskbarState · Style · Config · …
+└── services/ (Go) ················· daemons (mpd · bright · search) · calc-eval · theming · qsipc
 ```
-shell_refactored/
+
+**Ideas clave**
+
+- **Carga diferida**: nada se instancia hasta su primer uso (`AutoLazyLoader`); sticky default → las vistas quedan congeladas al cerrar.
+- **Un solo slot de panel**: `TaskbarState.panel` + exclusividad last-wins; abrir otro panel cambia el contenido en seco, sin re-animar.
+- **Estado en `state/`**: singletons compartidos; la UI nunca habla con el sistema directamente (procesos centralizados en `state/`).
+- **Estilo**: `Style.*` (Material You 3) + `Config.*` — cero colores o medidas hardcodeadas.
+
+### Paneles grandes (`PanelPopupHost`)
+
+| Slot (`TaskbarState.panel`) | Vista | Apertura |
+|:---|:---|:---|
+| `launcher` | `LauncherPopup` (AppMenu / Clipboard por modo) | IPC `command-palette` |
+| `jumplist` | `JumpList` | hover/click en la tasklist |
+| `music` | `MusicPopup` (MPRIS + cola) | widget MPRIS |
+| `controlcenter` | `ControlCenterNew` | DashWidget |
+| `mpd` | `MpdPopup` (`CpMpdView`) | IPC `mpd` · `command-palette openMpd` |
+| `calc` | `CalcPopup` | IPC `calc` · `command-palette openCalc` |
+
+---
+
+## 🎛️ IPC
+
+Un archivo por target en `ipc/`. **Los targets no se renombran**: los keybinds de labwc (fuera del repo) los llaman.
+
+| Target | Archivo | Funciones |
+|:---|:---|:---|
+| `command-palette` | `AppMenuIpc.qml` | `toggle` `open` `close` `openClipboard` `openStartmenu` · `openMpd`/`openMusic` · `openCalc`/`openCalculator` |
+| `calc` | `CalcIpc.qml` | `toggle` `open` `close` |
+| `mpd` | `MpdIpc.qml` | `toggle` `open` `close` · `play` `pause` `togglePause` `next` `prev` `stop` `seek` `seekOffset` `volume` |
+| `vol` | `VolumeIpc.qml` | `adjust` `toggle` |
+| `bright` | `BrightIpc.qml` | `adjust` |
+| `power` | `PowerIpc.qml` | `toggle` `logout` `reboot` `off` |
+| `clipboard` | `ClipboardIpc.qml` | `toggle` `open` `close` |
+| `notes` | `NotesIpc.qml` | `toggle` `open` `close` |
+
+---
+
+## 🗂️ Árbol de archivos
+
+```text
+win10/
 │
-├── shell.qml                          # ShellRoot — punto de entrada. Instancia Taskbar
-│                                      # y PanelPopupHost siempre. El resto se
-│                                      # carga con AutoLazyLoader (carga diferida).
-├── manifest.json                      # Metadata del paquete: name, description, version
+├── shell.qml                       # ShellRoot — punto de entrada: Taskbar + PanelPopupHost
+│                                   # siempre; el resto carga diferida (AutoLazyLoader).
+├── manifest.json                   # Metadata del paquete (name, description, version).
 │
-├── logic/                             # Módulos JS puros (sin dependencias de QML ni singletons).
-│   ├── time.js                        # formato de tiempo, clamp.
-│   ├── mpd.js                         # parseo/filtrado MPD.
-│   ├── startmenu.js                   # filtrado de apps, comandos, iconos por extensión.
-│   │
-├── state/                             # Singletons globales. pragma Singleton + Singleton {}.
-│   │                                  # Accesibles por nombre desde cualquier QML sin import path.
-│   ├── TaskbarState.qml               # Bus central de eventos UI (panel, activePopup, volumeSliderOpen, popupX…).
-│   ├── SettingsState.qml              # Persistencia unificada → ~/.config/qs-settings.json
-│   ├── Style.qml                      # Paleta activa (surface, primary, outline…). Sin hardcodear colores.
-│   ├── AudioState.qml                 # Volumen global + por player.
-│   ├── MprisState.qml                 # Player MPRIS activo (título, artista, arte).
-│   ├── ClipboardState.qml             # Historial cliphist + thumbs en /tmp/quickshell-clipboard/.
-│   ├── Config.qml                     # Tokens de diseño: colores, tamaños, radios, fuentes.
-│   ├── DirBrowserState.qml            # Listado de directorios/archivos (centraliza Process list-dirs).
+├── logic/                          # Módulos JS puros (sin QML ni singletons).
+│   ├── time.js                     #   formato de tiempo, clamp.
+│   ├── mpd.js                      #   parseo/filtrado MPD.
+│   └── startmenu.js                #   filtrado de apps, comandos, iconos por extensión.
+│
+├── state/                          # Singletons globales (pragma Singleton + qmldir).
+│   ├── TaskbarState.qml            # Bus central de la UI (panel, activePopup, pins, OSD…).
+│   ├── SettingsState.qml           # Persistencia → ~/.config/qs-settings.json.
+│   ├── Style.qml · Config.qml · Icons.qml
+│   │                               # Paleta MD3 · tokens de diseño · glifos.
+│   ├── AudioState · MprisState     # Volumen (Pipewire) · player activo.
+│   ├── MpdState · MpdConnection    # MPD: estado · bridge NDJSON al daemon Go.
+│   ├── BrightState · BrightConnection
+│   │                               # Brillo: estado · bridge al daemon Go.
+│   ├── CalculatorState             # Motor de la calc (async, bin/calc-eval).
+│   ├── ClipboardState · ClipEntry · ClipFilter · ClipProcesses
+│   │                               # Portapapeles: historial, parseo, filtro, procesos.
+│   ├── StartmenuState · AppLaunchState · OpenAppsState
+│   │                               # Índice de apps · lanzar · ventanas abiertas.
+│   ├── WifiState · MonitorState · ThemeState · WallpaperState
+│   ├── PomodoroState · NotesState · PolkitState · DirBrowserState
 │   └── qmldir
 │
-├── taskbar/                           # Barra principal y toda la lógica de ventanas/tareas.
-│   ├── Taskbar.qml                    # PanelWindow anclado bottom+left+right.
+├── taskbar/                        # La barra: ventanas, tareas y pines.
+│   ├── Taskbar.qml                 # PanelWindow anclada bottom + left + right.
 │   ├── groups/
-│   │   ├── TaskList.qml               # ListView horizontal. Modelo: pinnedApps + unpinnedOpen.
-│   │   └── TaskButton.qml             # Botón unificado (launcher / ventanas / ambas).
+│   │   ├── TaskList.qml            # ListView horizontal: pinnedApps + unpinnedOpen.
+│   │   └── TaskButton.qml          # Botón unificado (launcher / ventanas / ambas).
 │   ├── jumplist/
-│   │   ├── JumpList.qml               # Jump List estilo Windows 10 (vista del panel "jumplist").
-│   │   └── JumpListItem.qml           # Ítem individual de la JumpList.
+│   │   ├── JumpList.qml            # Jump List estilo Win10 (panel "jumplist").
+│   │   └── JumpListItem.qml        # Ítem individual.
 │   └── qmldir
 │
-├── widgets/                           # Widgets de la barra (lado izquierdo/derecho).
-│   │                                  # State layer en accent (hover 10%, pressed 18%).
-│   ├── DashWidget.qml                 # Trigger del Control Center. Muestra wifi y hora/fecha.
-│   ├── VolumeWidget.qml               # Ícono + slider inline (se revela con hover, sin popup).
+├── widgets/                        # Widgets de la barra.
+│   ├── DashWidget.qml              # Trigger del CC (wifi + fecha/hora).
+│   ├── MprisWidget.qml             # Slot dinámico del player activo (slide + fade).
+│   ├── VolumeWidget.qml            # Ícono + slider inline (hover, sin popup).
 │   └── qmldir
 │
-├── popups/                            # Paneles flotantes. Carga diferida via AutoLazyLoader.
-│   │                                  # Los grandes (Launcher/JumpList/Music/CC/Mpd/Calc) son vistas Item de
-│   │                                  # components/PanelPopupHost (superficie única, slot TaskbarState.panel).
-│   │                                  # El resto usa components/WipePopupShell (wipe estilo minflair)
-│   │                                  # + fusión convex con la barra (ConvexPopupShape, flares, overscan 16px).
-│   ├── ControlCenterNew.qml           # Vista "controlcenter" del host (right): usuario, tiles, brillo, calendario/notif/pomodoro, wifi.
-│   ├── CalcPopup.qml                  # Panel Calc (PanelPopupHost): calculadora con IPC propio (target "calc").
-│   ├── MpdPopup.qml                   # Panel MPD (PanelPopupHost): CpMpdView
-│   │                                  # (cola sobre PanelList, focus único hover/teclado + fila sonando con bg sólido).
-│   ├── LauncherPopup.qml              # Vista "launcher": AppMenu/Clipboard por modo (sin reabrirse).
-│   ├── MusicPopup.qml                 # Vista "music": player MPRIS (+ cola MPD expandible a la derecha).
-│   ├── OsdSliderPopup.qml            # OSD único vol/brillo/power (modo por IPC, sin reabrirse).
-│   │                                  # power: botones uniformes + highlight deslizante + nav ←/→/Enter/Esc.
-│   │                                  # IPC: vol (adjust/toggle), power (toggle/logout/reboot/off).
-│   ├── NotesSidebar.qml               # Bloc de notas (ventana SSD, autoguardado, resaltado, slash commands).
-│   ├── SettingsPopup.qml              # Panel principal de ajustes. 4 tabs.
-│   ├── PolkitPopup.qml                # Diálogo de autenticación polkit (centrado).
+├── popups/                         # Paneles flotantes (carga diferida).
+│   │                               #   Los grandes = vistas Item de PanelPopupHost;
+│   │                               #   el resto = WipePopupShell (wipe minflair)
+│   │                               #   + ConvexPopupShape (fusión con la barra).
+│   ├── LauncherPopup.qml           # "launcher": AppMenu / Clipboard por modo.
+│   ├── MpdPopup.qml                # "mpd": cola MPD (CpMpdView sobre PanelList).
+│   ├── CalcPopup.qml               # "calc": calculadora con IPC propio.
+│   ├── MusicPopup.qml              # "music": player MPRIS + cola MPD expandible.
+│   ├── ControlCenterNew.qml        # "controlcenter": CC completo (lado right).
+│   ├── OsdSliderPopup.qml          # OSD único vol/brillo/power (modo por IPC).
+│   ├── SettingsPopup.qml           # Ajustes: ventana SSD con drawer, 4 tabs.
+│   ├── NotesSidebar.qml            # Bloc de notas: ventana SSD, slash commands.
+│   ├── PolkitPopup.qml             # Diálogo de autenticación polkit.
 │   └── qmldir
 │
-├── components/                        # Primitivos UI reutilizables. Sin lógica de negocio.
-│   ├── ConvexPopupShape.qml           # Shape convexo para fusión popup↔barra (radios direccionales + flares).
-│   ├── WipePopupShell.qml             # Shell genérico: superficie fija + wipe estilo minflair (flag, position, contentWidth/Height).
-│   ├── PanelPopupHost.qml             # Superficie global única de Launcher/JumpList/Music/CC/Mpd/Calc (API viewWidth/Height/X, _CONFIGS, retención en cierre).
-│   ├── SeekBar.qml / MprisControl.qml  # Piezas MPRIS (seek, prev/play/next).
-│   ├── ValueSlider.qml                # Slider con ícono para popups (volumen global).
-│   ├── SmartSearchInput.qml           # Buscador con contador integrado (showSearchCounter).
-│   ├── AppTextInput.qml               # Input base con estilo único (bg + borde de foco).
-│   ├── AppIcon.qml                    # Imagen con fallback de inicial coloreada.
-
-│   ├── AutoLazyLoader.qml             # LazyLoader que no se destruye una vez cargado.
-│   ├── DismissOverlay.qml             # Rectángulo fullscreen transparente para cerrar popups.
-
-│   ├── WindowCountBadge.qml           # Badge circular con número de ventanas.
-│   ├── SectionLabel.qml               # Etiqueta uppercase para secciones.
-
-│   ├── PanelList.qml                  # Lista scrollable genérica reutilizable: modelo externo, delegate externo,
-│   │                                  # estado vacío/cargando configurable, buscador opcional, nav por teclado.
-│   │                                  # Hover = selección por norma (focus único); opt-out con hoverSelects: false.
-│   ├── DropdownMenu.qml                # Menú flotante reutilizable (dropdown): items {id,label,icon,danger},
-│   │                                  # selectedId, hover + bg de selección; pointer solo en las filas.
-│   │                                  # rowDelegate para filas custom (ej. players con carátula en MusicPopup).
-│   ├── clipboard/                     # Submódulo del portapapeles (lógica + vista ClipView/ClipDelegate).
-│   │   ├── ClipEntry.qml              # Parsea una línea raw de cliphist en un objeto enriquecido (tipo, preview, etc.).
-│   │   ├── ClipFilter.qml             # Filtrado estilo fzf con debounce de 120 ms. Expone results[].
-│   │   ├── ClipProcesses.qml          # Encapsula todos los procesos cliphist (listar, copiar, borrar, wipe).
-│   │   ├── ClipItemDelegate.qml       # Delegate visual de cada entrada: texto, imagen preview, tipo.
-│   │   ├── ClipView.qml               # Vista clipboard del LauncherPopup: buscar + pegar.
-│   │   ├── ClipDelegate.qml           # Delegate de la vista clipboard.
-│   │   └── qmldir
-│   ├── appmenu/                       # Lanzador de apps.
-│   │   ├── AppMenuView.qml            # Vista apps del LauncherPopup: buscar, abrir y comandos (`>b`, `>ia`, `>sf`).
-│   │   ├── AppDelegate.qml            # Delegate de apps.
-│   │   └── qmldir
-│   ├── calc/                          # Componentes de la calculadora (panel "calc" de PanelPopupHost).
-│   │   ├── CpCalcPanel.qml            # Calculadora: input + display en vivo + teclado.
-│   │   ├── CpCalcFraction.qml / CpCalcPie.qml
-│   │   └── qmldir
-│   ├── mpd/                           # Vista Música MPD (panel "mpd").
-│   │   ├── CpMpdView.qml              # Cola única sobre PanelList (sin subvistas `>`, sin restaurar posición),
-│   │   │                              # recientes persistentes, cover full-bleed tintado, focus único.
-│   │   ├── CpMpdDelegate.qml          # Fila de canción (wash/pill sonando, sin hover propio).
-│   │   ├── CpRecentStrip.qml          # Tira horizontal de agregados recientes (click reproduce).
-│   │   └── qmldir
-│   ├── pomodoro/                      # Pomodoro (centro de control).
-│   │   ├── PomodoroPanel.qml          # Ring + controles + ajustes.
-│   │   └── qmldir
+├── components/                     # Primitivos UI reutilizables (sin lógica de negocio).
+│   ├── PanelPopupHost.qml          # Superficie única de los paneles grandes (_CONFIGS).
+│   ├── WipePopupShell.qml          # Shell de popups: superficie fija + wipe.
+│   ├── PopupShell · PopupDrawer    # Marco de Settings (FloatingWindow + drawer de tabs).
+│   ├── ConvexPopupShape.qml        # Fusión convexa popup↔barra (radios + flares).
+│   ├── DismissOverlay.qml          # Cierre por click-fuera.
+│   ├── AutoLazyLoader.qml          # Carga diferida sticky (vistas congeladas).
+│   ├── PanelList.qml               # Lista genérica: nav teclado, vacío/cargando, hover = selección.
+│   ├── DropdownMenu.qml            # Menú flotante reutilizable (rowDelegate).
+│   ├── SmartSearchInput · AppTextInput · PillButton · Badge
+│   │                               # Inputs, botón pill y badges.
+│   ├── SeekBar · MprisControl · ValueSlider · RoundedImage
+│   │                               # Piezas MPRIS y sliders.
+│   ├── AppIcon · WindowCountBadge · SectionLabel · Header · EmptyState · Mouse · NoteTextArea · Drawer
+│   ├── appmenu/                    # Lanzador: AppMenuView + AppDelegate.
+│   ├── clipboard/                  # ClipView, ClipItemDelegate, ClipDelegate.
+│   ├── calc/                       # CpCalcPanel + CpCalcFraction + CpCalcPie.
+│   ├── mpd/                        # CpMpdView + CpMpdDelegate + CpRecentStrip.
+│   ├── pomodoro/                   # PomodoroPanel (ring + controles).
+│   ├── settings/                   # Tabs de Settings, combos, DirBrowser, TabTransition.
 │   └── qmldir
 │
-├── tray/                              # Bandeja del sistema.
-│   ├── SystemTrayArea.qml             # Row con: Repeater(SystemTray.items → TrayIconPill) + DashWidget.
-│   ├── TrayIconPill.qml               # Ítem individual del tray con tooltip y menú contextual.
+├── tray/                           # Bandeja del sistema.
+│   ├── SystemTrayArea.qml          # Repeater(SystemTray.items) + DashWidget.
+│   ├── TrayIconPill.qml            # Ítem con tooltip y menú contextual.
 │   └── qmldir
 │
-└── services/                         # Modulos Go (cada carpeta es un módulo propio).
-    ├── calc/                         # Calculadora.
-    ├── daemons/                      # Un binario: service/mpd, bright, search (NDJSON stdio).
-    ├── list-dirs/                     # JSON para DirBrowser (files = sniff texto) / monitores.
-    ├── list-monitors/                # Lista de monitores.
-    ├── resolve-icons/                # Genera { appId: "/path/icon.svg" } desde el icon theme.
-    ├── theming/                      # GTK-apply, shell-theme, matugen-apply.
-    │   ├── cmd/gtk-apply/            # GTK-apply
-    │   ├── cmd/shell-theme/          # Shell-theme
-    │   ├── cmd/matugen-apply/        # Matugen-apply
-    │   └── internal/                 # Lógica compartida
-    └── qsipc/                        # IPC client for quickshell
-        └── main.go                 # qsipc binary
+├── ipc/                            # Un archivo por target (ver tabla de arriba).
+│
+├── services/                       # Go 1.24 — cada carpeta es un módulo propio (con doc.md).
+│   ├── daemons/                    # Un binario: mpd · bright · search (NDJSON por stdio).
+│   ├── calc/                       # calc-eval: motor de la calculadora.
+│   ├── theming/                    # gtk-apply · shell-theme · matugen-apply (cmd/ + internal/).
+│   ├── qsipc/                      # Cliente IPC de quickshell (lo usan los keybinds de labwc).
+│   ├── list-dirs · list-monitors · resolve-icons
+│   │                               # JSON para DirBrowser · monitores · iconos por appId.
+│
+└── bin/                            # Binarios compilados (git-ignorado).
+    ├── daemon · calc-eval · list-dirs · list-monitors · resolve-icons
+    └── gtk-apply · shell-theme · matugen-apply · qsipc
+```
 
-└── bin/                              # Binarios compilados (ignorado por git)
-    ├── daemon                         # daemons binary
-    ├── calc-eval                     # calculator
-    ├── list-dirs                     # directory lister
-    ├── list-monitors                 # monitor lister
-    ├── resolve-icons                 # icon resolver
-    ├── gtk-apply                     # GTK theme applier
-    ├── shell-theme                   # shell theme applier
-    ├── matugen-apply                 # matugen theme applier
-    └── qsipc                         # quickshell IPC client
-    ```
+---
 
+## ✔️ Verificación
+
+```bash
+# Lint QML (con rutas de import; sin -i da falsos 255 por tipos sin resolver)
+qmllint -i . -i ./state -i ./components -i ./popups -i ./taskbar \
+  -i ./widgets -i ./tray -i ./ipc <archivo.qml>
+
+# Go: vet + tests dentro de cada módulo
+cd services/<módulo> && go vet ./... && go test ./...
+
+# IPC en vivo (con la shell corriendo)
+qs ipc call calc toggle
+qs ipc call command-palette openClipboard
+```
+
+---
+
+## 🤖 Mantenimiento por IA
+
+Este repo se desarrolla con [OpenCode](https://opencode.ai). Las instrucciones del agente
+viven en [`AGENTS.md`](AGENTS.md): mapa de archivos (fuente de verdad), convenciones de
+estilo (`Style.*` / `Config.*`), patrones de popups/paneles/IPC y las verificaciones
+obligatorias de arriba. Para cualquier cambio: leer antes de editar, `qmllint` tras
+tocar QML y `go vet` tras tocar Go.
