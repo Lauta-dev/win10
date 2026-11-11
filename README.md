@@ -51,9 +51,9 @@
 |:---:|:---:|
 | <img src="public/1794432393.png" width="480" alt="Centro de control"/> | <img src="public/1794432400.png" width="480" alt="Ajustes"/> |
 
-| 🎧 **Panel MPD** — cola + recientes (skeleton de espera) |
-|:---:|
-| <img src="public/1794432405.png" width="480" alt="Panel MPD"/> |
+| 🎧 **Panel MPD** — cola + recientes (skeleton de espera) | 🖥️ **Ajustes · Monitores** — organizar pantallas, espejo/extendido, posición |
+|:---:|:---:|
+| <img src="public/1794432405.png" width="480" alt="Panel MPD"/> | <img src="public/1794432721.png" width="480" alt="Monitores"/> |
 
 ---
 
