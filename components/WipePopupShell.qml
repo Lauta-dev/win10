@@ -1,4 +1,4 @@
-// WipePopupShell.qml — Shell genérico de popups estilo minflair
+// WipePopupShell.qml — Shell genérica de popups
 // (SidebarWindow): superficie layer-shell fija abajo + caja de contenido
 // que se revela con wipe vertical desde la barra (clip). El shell NUNCA
 // se escala: el ConvexPopupShape queda estático y el contenido se descubre.

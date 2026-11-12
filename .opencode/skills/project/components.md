@@ -106,7 +106,7 @@ Todos flotan separados de la barra (gap 10px) con tarjeta redondeada + borde `ou
 | SectionLabel | text | Etiqueta uppercase |
 | SegmentedControl | model, currentIndex | Pill row |
 | ToggleSwitch | checked | Switch on/off animado |
-| WipePopupShell | flag, position, contentWidth/Height, radius | Shell layer-shell con wipe estilo minflair (base de PanelPopupHost, OSD, toasts) |
+| WipePopupShell | flag, position, contentWidth/Height, radius | Shell layer-shell con wipe (base de PanelPopupHost, OSD, toasts) |
 | PanelPopupHost | — (lee TaskbarState.panel) | Superficie global única de Launcher/JumpList/Music/CC; API de vista `viewWidth/viewHeight/viewX/viewExclusiveFocus/viewOpen` |
 
 ## Control Center

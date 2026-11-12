@@ -1,9 +1,8 @@
 # calc-eval
 
-Motor aritmético del modo `calc` del Command Palette. Equivalente en rol
-al `Qalculator` de Caelestia (mismo diseño: evaluación async con
-generación anti-race del lado QML), pero como binario propio con
-protocolo JSON en vez de plugin C++.
+Motor aritmético del modo `calc` del Command Palette. Evaluación async
+con generación anti-race del lado QML, binario propio con protocolo
+JSON.
 
 ## Protocolo
 

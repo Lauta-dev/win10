@@ -7,8 +7,8 @@
 // texto e imágenes).
 //
 // Thumbnails: las imágenes binarias (`[[ binary data … ]]`, sin path)
-// se decodifican en un solo batch a /tmp/quickshell-clipboard/<id>.png
-// (estilo minflair); al terminar se emite thumbsReady([{id, file}]) para
+// se decodifican en un solo batch a /tmp/quickshell-clipboard/<id>.png;
+// al terminar se emite thumbsReady([{id, file}]) para
 // que el delegate muestre el banner. /tmp se limpia al reiniciar y el
 // guard [ ! -f ] evita re-decodificar.
 //
@@ -116,7 +116,7 @@ QtObject {
         onExited: root.wiped()
     }
 
-    // ── Thumbnails de imágenes binarias (un solo batch, estilo minflair) ──────
+    // ── Thumbnails de imágenes binarias (un solo batch) ───────────────────
     // Decode a .tmp + mv: el .png final solo existe si está completo.
     readonly property string _thumbDir: "/tmp/quickshell-clipboard"
 

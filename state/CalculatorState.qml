@@ -1,9 +1,7 @@
 // CalculatorState.qml — Motor aritmético para el modo "calc".
-// Diseño espejo del Qalculator de Caelestia: evaluación async con
-// contador de generación (descarta respuestas viejas), props busy +
-// liveResult (≈ rawResult, copiable). El motor es el binario propio
-// scripts/calc-eval (Go, protocolo JSON) en vez del plugin C++ con
-// libqalculate: misma arquitectura, extensible sin C++.
+// Evaluación async con contador de generación (descarta respuestas
+// viejas), props busy + liveResult (≈ rawResult, copiable). El motor
+// es el binario propio scripts/calc-eval (Go, protocolo JSON).
 pragma Singleton
 import Quickshell
 import Quickshell.Io
@@ -44,7 +42,7 @@ Singleton {
         debounce.restart()
     }
 
-    // ── Motor async (generación anti-race estilo Qalculator) ─────────
+    // ── Motor async (generación anti-race) ────────────────────────────
     property string _wanted: ""
     property int _seq: 0
     property int _activeSeq: -1

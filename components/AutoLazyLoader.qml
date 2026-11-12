@@ -7,7 +7,7 @@
 //   (vistas congeladas, cursor preservado).
 // sticky: false: descarga unloadDelay ms después de cerrar, con margen
 //   para la animación de salida y para que onIsOpenChanged corra antes
-//   de destruir (estilo minflair WidgetLoader: unload en fullyClosed).
+//   de destruir (unload en fullyClosed).
 //
 // Es un Item wrapper (no hereda LazyLoader): los hijos declarativos de
 // un LazyLoader viven en otro scope de ids y un Timer hermano nunca

@@ -240,7 +240,7 @@ Item {
                         Repeater {
                             // 0 wifi, 1 pantalla (layouts), 2 dark/night,
                             // 3 dispositivo Android (kcd), 4 pomodoro,
-                            // 5 calendario, 6 submenú pomo/cal (fila DMS).
+                            // 5 calendario, 6 submenú pomo/cal (fila full-width).
                             model: 7
                             delegate: Item {
                                 id: m3tile
@@ -575,8 +575,8 @@ Item {
                                     }
 
                                     // Submenú pomodoro/calendario (kind 6):
-                                    // fila full-width del grid, a lo DMS
-                                    // pre-2.0. Vistas exclusivas superpuestas,
+                                    // fila full-width del grid.
+                                    // Vistas exclusivas superpuestas,
                                     // pre-creadas al abrir el CC (anti-lag).
                                     Item {
                                         id: subArea

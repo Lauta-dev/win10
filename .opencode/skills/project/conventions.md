@@ -111,7 +111,7 @@ Item {
 **Causa:** Mezclar sistemas de eventos: el botón es `MouseArea` que actúa en `onPressed`, y la celda usa `TapHandler` con `gesturePolicy: DragThreshold` (default). Con ese policy el TapHandler usa solo *passive grab* y la doc de Qt dice que dispara igual aunque otro ítem ya esté reaccionando, incluso en otra capa del UI. Resultado: el press actúa el botón y en el release el TapHandler dispara también. Dos acciones de un click, por diseño — no es race ni timing.
 No sirven: `grabPermissions: TakeOverForbidden` (el TapHandler pasivo no roba nada, solo observa), cooldowns ni guards de estado.
 
-**Patrón correcto (como Caelestia: todo `MouseArea` + `onClicked`, sin mezclar):**
+**Patrón correcto (todo `MouseArea` + `onClicked`, sin mezclar):**
 ```qml
 // MAL: TapHandler debajo de un botón MouseArea → doble acción
 TapHandler {

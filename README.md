@@ -170,7 +170,7 @@ win10/
 │
 ├── popups/                         # Paneles flotantes (carga diferida).
 │   │                               #   Los grandes = vistas Item de PanelPopupHost;
-│   │                               #   el resto = WipePopupShell (wipe minflair)
+│   │                               #   el resto = WipePopupShell (wipe vertical)
 │   │                               #   + ConvexPopupShape (fusión con la barra).
 │   ├── LauncherPopup.qml           # "launcher": AppMenu / Clipboard por modo.
 │   ├── MpdPopup.qml                # "mpd": cola MPD (CpMpdView sobre PanelList).
@@ -241,4 +241,21 @@ cd services/<módulo> && go vet ./... && go test ./...
 qs ipc call calc toggle
 qs ipc call command-palette openClipboard
 ```
+
+---
+
+## 🙏 Créditos
+
+El código es 100% propio (QML + Go, escrito de cero), pero el diseño y el
+comportamiento de varias piezas se tomaron de shells y herramientas open source:
+
+| Proyecto | Qué se tomó |
+|:---|:---|
+| [**minflair**](https://github.com/t4lentles5/minflair) | Los marcos de popup: fusión convexa con la barra (`ConvexPopupShape` con flares), wipe vertical (`WipePopupShell`), carga diferida con descarga al cerrar (`AutoLazyLoader`) y el batch de thumbnails del portapapeles. |
+| [**DMS · DankMaterialShell**](https://github.com/duxlabs-dev/dux-shell) (hoy Dux Shell) | El grid de tiles del centro de control y el submenú full-width pomodoro/calendario con vistas exclusivas. |
+| [**Caelestia**](https://github.com/caelestia-dots/shell) | La calculadora: evaluación async con generación anti-race y fracciones exactas apiladas (a partir de su Qalculator). |
+| [**KDE Plasma**](https://kde.org) | El popup inline de contraseña WiFi en el ítem de red y el resaltado de sintaxis de Notas según mime (estilo Kate). |
+| [**fzf**](https://github.com/junegunn/fzf) | El filtrado fuzzy del portapapeles (`ClipFilter`). |
+
+Gracias por compartir el código y las ideas. 💜
 
