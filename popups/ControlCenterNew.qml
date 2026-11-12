@@ -45,18 +45,49 @@ Item {
     // deps usadas adentro).
     function _tileOn(k) {
         if (k === 0) return _wifiEnabled
+        if (k === 3) return KcdState.connected
+        if (k === 4) return PomodoroState.isRunning
+        if (k === 5) return root._calOpen
         return root._layVisible
     }
     function _tileIcon(k) {
         if (k === 0) return _wifiConnected ? Icons.wifi : Icons.wifiOff
+        if (k === 3) return KcdState.connected ? Icons.cellphone : Icons.cellphoneOff
+        if (k === 4) return PomodoroState.isRunning ? Icons.musicPause : Icons.musicPlay
+        if (k === 5) return Icons.calendar
         return Icons.display
     }
     function _tileLabel(k) {
         if (k === 0) return root._wifiConnected ? root._connectedName : "WiFi"
+        if (k === 3) return KcdState.connected ? KcdState.device.name : "Sin dispositivo"
+        if (k === 4) {
+            if (PomodoroState.timerState === "idle") return "Pomodoro"
+            var t = PomodoroState.timeRemaining
+            var m = Math.floor(t / 60), s = t % 60
+            return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
+        }
+        if (k === 5) return "Cal"
         return MonitorState.activeLayout === "dual" ? "Dual"
              : MonitorState.activeLayout === "monitor" ? "Monitor" : "Netbook"
     }
     function _tileRun(k, mouse) {
+        if (k === 4) {
+            // Abre/cierra el submenú del pomodoro (exclusivo con calendario).
+            root._pomoOpen = !root._pomoOpen
+            if (root._pomoOpen) root._calOpen = false
+            return
+        }
+        if (k === 5) {
+            // Abre/cierra el submenú del calendario (exclusivo con pomodoro).
+            root._calOpen = !root._calOpen
+            if (root._calOpen) root._pomoOpen = false
+            return
+        }
+        if (k === 3) {
+            // Abre/cierra la ficha del dispositivo (batería, id, tipo).
+            root._devOpen = !root._devOpen
+            return
+        }
         if (k === 0) {
             if (mouse && mouse.button === Qt.RightButton) WifiState.setWifiEnabled(!_wifiEnabled)
             else {
@@ -127,6 +158,20 @@ Item {
 
     // Lista WiFi expandida debajo del tile (acordeón)
     property bool _wifiListOpen: false
+    // Ficha del dispositivo Android expandida bajo el tile (acordeón)
+    property bool _devOpen: false
+    // Submenús pomodoro/calendario: acordeones full-width bajo la fila de
+    // tiles, exclusivos entre sí (abrir uno cierra el otro).
+    property bool _pomoOpen: false
+    property bool _calOpen: false
+    // Glifo de batería por nivel (con bolt si está cargando).
+    readonly property string _devBattIcon: {
+        if (!KcdState.connected) return ""
+        if (KcdState.charging) return Icons.batteryCharging
+        if (KcdState.battery >= 60) return Icons.batteryHigh
+        if (KcdState.battery >= 30) return Icons.batteryMedium
+        return Icons.batteryLow
+    }
 
     // Submenú inline de contraseña estilo KDE (ssid expandido)
     property string _expandedSsid: ""
@@ -135,7 +180,7 @@ Item {
 
     // "Hoy" del calendario se recalcula solo al abrir el panel (no con un
     // timer): si la shell lleva días corriendo, al abrirlo ya está al día.
-    onViewOpenChanged: { if (viewOpen) { MonitorState.refresh(); BrightState.sync(); calRoot.refreshToday() } else { _ctxVisible = false; _layVisible = false; _wifiListOpen = false; _expandedSsid = ""; _pwdDrafts = {}; WifiState.inlineSsid = ""; WifiState.stopScan() } }
+    onViewOpenChanged: { if (viewOpen) { MonitorState.refresh(); BrightState.sync(); KcdState.start() } else { _ctxVisible = false; _layVisible = false; _wifiListOpen = false; _devOpen = false; _pomoOpen = false; _calOpen = false; _expandedSsid = ""; _pwdDrafts = {}; WifiState.inlineSsid = ""; WifiState.stopScan(); KcdState.stop() } }
 
     Connections {
         target: WifiState
@@ -148,11 +193,6 @@ Item {
     // redimensiona la ventana por frame. El alto del contenido es la suma
     // de sus partes (sin animación): piso = vista colapsada exacta.
     readonly property real _maxH: Screen.height - Config.taskbarHeight - 20
-    // Base sin la card (pads + tiles + brillo + spacings).
-    readonly property real _baseH: mainCol.topPadding
-        + tilesGrid.height + mainCol.spacing
-        + brightBox.height + mainCol.spacing
-        + mainCol.bottomPadding
     readonly property real visualHeight: Math.min(ccFlickable.contentHeight + 2, _maxH)
     // Alto fijo para las listas de sub-vistas (wifi/batería): ventana más
     // alta al abrir un tile. Fijo (no sigue al alto animado) para evitar
@@ -198,15 +238,20 @@ Item {
                         rowSpacing: 8
 
                         Repeater {
-                            model: 3
+                            // 0 wifi, 1 pantalla (layouts), 2 dark/night,
+                            // 3 dispositivo Android (kcd), 4 pomodoro,
+                            // 5 calendario, 6 submenú pomo/cal (fila DMS).
+                            model: 7
                             delegate: Item {
                                 id: m3tile
                                 readonly property int kind: index
                                 readonly property bool m3on: root._tileOn(kind)
                                 property real wifiListAnimH: 0
+                                property real devAnimH: 0
+                                property real subAnimH: 0
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 64 + wifiListAnimH
-                                Layout.columnSpan: kind === 0 ? 2 : 1
+                                Layout.preferredHeight: kind === 6 ? subAnimH : 64 + wifiListAnimH + devAnimH
+                                Layout.columnSpan: kind === 0 || kind === 3 || kind === 6 ? 2 : 1
 
                                 NumberAnimation {
                                     id: wifiListAnim
@@ -225,17 +270,66 @@ Item {
                                     }
                                 }
 
+                                NumberAnimation {
+                                    id: devAnim
+                                    target: m3tile
+                                    property: "devAnimH"
+                                    duration: 300
+                                    easing.type: Easing.OutCubic
+                                }
+
+                                Connections {
+                                    target: root
+                                    function on_DevOpenChanged() {
+                                        devAnim.from = devAnimH
+                                        devAnim.to = kind === 3 && root._devOpen ? 104 : 0
+                                        devAnim.start()
+                                    }
+                                }
+
+                                NumberAnimation {
+                                    id: subAnim
+                                    target: m3tile
+                                    property: "subAnimH"
+                                    duration: 300
+                                    easing.type: Easing.OutCubic
+                                }
+
+                                // Fila del submenú (kind 6): la altura depende
+                                // del exclusivo activo (240 pomo / 300 cal).
+                                // Guard por kind: los demás tiles ignoran.
+                                Connections {
+                                    target: root
+                                    function on_PomoOpenChanged() {
+                                        if (kind !== 6) return
+                                        subAnim.from = subAnimH
+                                        subAnim.to = root._pomoOpen ? 240 : (root._calOpen ? 300 : 0)
+                                        subAnim.start()
+                                    }
+                                    function on_CalOpenChanged() {
+                                        if (kind !== 6) return
+                                        subAnim.from = subAnimH
+                                        subAnim.to = root._calOpen ? 300 : (root._pomoOpen ? 240 : 0)
+                                        subAnim.start()
+                                    }
+                                }
+
                                 Component.onCompleted: {
                                     wifiListAnimH = kind === 0 && root._wifiListOpen ? Math.min(300, root.subViewListH) : 0
+                                    devAnimH = kind === 3 && root._devOpen ? 104 : 0
+                                    subAnimH = kind === 6 ? (root._pomoOpen ? 240 : root._calOpen ? 300 : 0) : 0
                                 }
 
                                 Column {
                                     anchors.fill: parent
                                     spacing: 0
 
-                                    // Tile actual (altura fija 64)
+                                    // Tile actual (altura fija 64). En la fila
+                                    // submenú (kind 6) se omite por completo:
+                                    // el Column salta los hijos invisibles.
                                     Item {
                                         id: tileContent
+                                        visible: kind !== 6
                                         width: parent.width
                                         height: 64
 
@@ -285,7 +379,7 @@ Item {
 
                                                 Text {
                                                     anchors.verticalCenter: parent.verticalCenter
-                                                    width: parent.width - 52
+                                                    width: parent.width - 52 - (kind === 3 ? 104 : 0)
                                                     text: root._tileLabel(m3tile.kind)
                                                     elide: Text.ElideRight
                                                     maximumLineCount: 1
@@ -294,6 +388,33 @@ Item {
                                                     font.family: Config.uiFont
                                                     color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
                                                     Behavior on color { ColorAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                                                }
+
+                                                // Batería del dispositivo (sólo kind 3), en vivo vía kcd.
+                                                Item {
+                                                    visible: kind === 3
+                                                    width: kind === 3 ? 92 : 0
+                                                    height: parent.height
+
+                                                    Row {
+                                                        anchors.centerIn: parent
+                                                        spacing: 4
+                                                        visible: KcdState.connected
+
+                                                        Text {
+                                                            text: root._devBattIcon
+                                                            font.pixelSize: Config.fontSizeIcon
+                                                            font.family: Icons.font
+                                                            color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
+                                                        }
+                                                        Text {
+                                                            text: KcdState.battery >= 0 ? KcdState.battery + "%" : "—"
+                                                            font.pixelSize: Config.fontSizeBodySm
+                                                            font.weight: Config.fontWeightMedium
+                                                            font.family: Config.uiFont
+                                                            color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
+                                                        }
+                                                    }
                                                 }
                                             }
 
@@ -405,6 +526,23 @@ Item {
                                                 else root._tileRun(kind, mouse)
                                             }
                                         }
+
+                                        // Zona del ícono (sólo tile pomodoro,
+                                        // kind 4): pausa/reanuda sin abrir la
+                                        // vista. Encima de tileMouse para
+                                        // quedarse el click.
+                                        Mouse {
+                                            anchors.left: parent.left
+                                            anchors.top: parent.top
+                                            anchors.bottom: parent.bottom
+                                            width: 52
+                                            enabled: kind === 4
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                if (PomodoroState.isRunning) PomodoroState.pause()
+                                                else PomodoroState.start()
+                                            }
+                                        }
                                     }
 
                                     // Lista WiFi debajo del tile (sólo kind 0, acordeón)
@@ -418,6 +556,60 @@ Item {
                                             anchors.fill: parent
                                             active: root._wifiListOpen || wifiListAnimH > 0
                                             sourceComponent: WifiState.wifiEnabled ? wifiListComp : wifiEmptyOffComp
+                                        }
+                                    }
+
+                                    // Ficha del dispositivo Android debajo del tile
+                                    // (sólo kind 3, acordeón).
+                                    Item {
+                                        id: devArea
+                                        width: parent.width
+                                        height: devAnimH
+                                        clip: true
+
+                                        Loader {
+                                            anchors.fill: parent
+                                            active: root._devOpen || devAnimH > 0
+                                            sourceComponent: KcdState.connected ? devCardComp : devEmptyComp
+                                        }
+                                    }
+
+                                    // Submenú pomodoro/calendario (kind 6):
+                                    // fila full-width del grid, a lo DMS
+                                    // pre-2.0. Vistas exclusivas superpuestas,
+                                    // pre-creadas al abrir el CC (anti-lag).
+                                    Item {
+                                        id: subArea
+                                        width: parent.width
+                                        height: subAnimH
+                                        clip: true
+                                        visible: kind === 6
+                                            && (root._pomoOpen || root._calOpen || subAnimH > 0)
+
+                                        Item {
+                                            anchors.fill: parent
+                                            visible: root._pomoOpen
+
+                                            Loader {
+                                                anchors.fill: parent
+                                                asynchronous: true
+                                                active: root.viewOpen
+                                                visible: status === Loader.Ready
+                                                sourceComponent: pomoComp
+                                            }
+                                        }
+
+                                        Item {
+                                            anchors.fill: parent
+                                            visible: root._calOpen
+
+                                            Loader {
+                                                anchors.fill: parent
+                                                asynchronous: true
+                                                active: root.viewOpen
+                                                visible: status === Loader.Ready
+                                                sourceComponent: calComp
+                                            }
                                         }
                                     }
                                 }
@@ -446,378 +638,6 @@ Item {
                         }
                     }
 
-                    // ── CALENDARIO / NOTIFICACIONES / POMODORO ─────────
-                    // Cerrados: card transparente de 48 — solo queda a la
-                    // vista el footer con los botones (abajito a la
-                    // derecha). Un botón abre su vista; el mismo la
-                    // cierra, otro la cambia.
-                    Rectangle {
-                        id: calPomoCard
-                        width: parent.width - 24
-                        anchors.horizontalCenter: parent.horizontalCenter
-
-                        property string mode: ""             // "" = colapsado
-                        property string lastMode: "calendar" // lo que abre el botón de expandir
-                        onModeChanged: {
-                            if (mode !== "") lastMode = mode
-                            // Entrar a la vista de calendario refresca "hoy".
-                            if (mode === "calendar") calRoot.refreshToday()
-                        }
-                        readonly property bool expanded: mode !== ""
-
-                        readonly property real _openH: Math.max(48, Math.min(350, root._maxH - root._baseH - 2))
-                        height: expanded ? _openH : 48
-                        Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-
-                        radius: 12
-                        color: Style.surface_container_low
-                        clip: true
-
-                        Item {
-                            id: modeFooter
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            height: 48
-
-                            // Separador sutil, solo cuando está expandido
-                            Rectangle {
-                                anchors.top: parent.top
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.leftMargin: 12
-                                anchors.rightMargin: 12
-                                height: 1
-                                color: Style.outline_variant
-                                opacity: calPomoCard.expanded ? 0.35 : 0.0
-                                Behavior on opacity { NumberAnimation { duration: 160 } }
-                            }
-
-                            // Todos los íconos a la derecha: modos + expandir
-                            Row {
-                                anchors.right: parent.right
-                                anchors.rightMargin: 8
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: 4
-
-                                PillButton {
-                                    size: 36
-                                    customRadius: height / 2
-                                    icon: Icons.timer
-                                    active: calPomoCard.mode === "pomodoro"
-                                    onClicked: calPomoCard.mode = calPomoCard.mode === "pomodoro" ? "" : "pomodoro"
-                                }
-
-                                PillButton {
-                                    size: 36
-                                    customRadius: height / 2
-                                    icon: Icons.calendar
-                                    active: calPomoCard.mode === "calendar"
-                                    onClicked: calPomoCard.mode = calPomoCard.mode === "calendar" ? "" : "calendar"
-                                }
-
-                            }
-                        }
-
-                        // Cuerpo (las vistas; hacen tope en el footer)
-                        Item {
-                            anchors.top: parent.top
-                            anchors.topMargin: 8
-                            anchors.bottom: modeFooter.top
-                            anchors.bottomMargin: 8
-                            anchors.left: parent.left
-                            anchors.leftMargin: 8
-                            anchors.right: parent.right
-                            anchors.rightMargin: 8
-                            clip: true
-                            
-                            // ── Calendario ──────────────────────────────
-                            Item {
-                                id: calView
-                                anchors.fill: parent
-                                readonly property bool active: calPomoCard.mode === "calendar"
-                                property real progress: active ? 1.0 : 0.0
-                                opacity: progress
-                                visible: progress > 0.01
-                                Behavior on progress {
-                                    NumberAnimation {
-                                        duration: 180
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
-
-                                Column {
-                                    anchors.fill: parent
-                                    anchors.margins: 8
-                                    spacing: 6
-
-                                    QtObject {
-                                        id: calRoot
-                                        property var refDate: new Date()
-                                        property int year:  refDate.getFullYear()
-                                        property int month: refDate.getMonth()
-                                        // _rev fuerza a recalcular "today" cuando el
-                                        // panel se abre (ver refreshToday()).
-                                        property int _rev: 0
-                                        property var today: { _rev; return new Date() }
-
-                                        function refreshToday() { _rev++ }
-
-                                        function prevMonth() {
-                                            var d = new Date(refDate); d.setDate(1); d.setMonth(d.getMonth() - 1); refDate = d
-                                        }
-                                        function nextMonth() {
-                                            var d = new Date(refDate); d.setDate(1); d.setMonth(d.getMonth() + 1); refDate = d
-                                        }
-                                    }
-
-                                    // Titular M3 Expressive + navegación
-                                    Item {
-                                        width: parent.width
-                                        height: 40
-
-                                        RowLayout {
-                                            anchors.fill: parent
-                                            spacing: 4
-
-                                            Column {
-                                                Layout.fillWidth: true
-                                                Layout.alignment: Qt.AlignVCenter
-                                                spacing: 0
-                                                Text {
-                                                    text: {
-                                                        var m = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                                                                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
-                                                        return m[calRoot.month]
-                                                    }
-                                                    font.pixelSize: Config.fontSizeTitle
-                                                    font.weight: Config.fontWeightBold
-                                                    font.family: Config.uiFont
-                                                    color: Style.on_surface
-                                                }
-                                                Text {
-                                                    text: calRoot.year
-                                                    font.pixelSize: Config.fontSizeCaption
-                                                    font.family: Config.uiFont
-                                                    color: Style.on_surface_variant
-                                                }
-                                            }
-
-                                            // Pill "Hoy" — visible fuera del mes actual
-                                            Item {
-                                                Layout.preferredWidth: 58
-                                                Layout.preferredHeight: 30
-                                                visible: calRoot.month !== calRoot.today.getMonth()
-                                                    || calRoot.year !== calRoot.today.getFullYear()
-                                                Rectangle {
-                                                    anchors.fill: parent
-                                                    radius: 8
-                                                    color: Style.secondary_container
-                                                    opacity: calTitleH.hovered ? 1.0 : 0.75
-                                                    Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                                                    
-                                                    Text {
-                                                        anchors.centerIn: parent
-                                                        text: "Hoy"
-                                                        font.pixelSize: Config.fontSizeLabelSm
-                                                        font.weight: Config.fontWeightMedium
-                                                        font.family: Config.uiFont
-                                                        color: Style.on_secondary_container
-                                                    }
-                                                }
-                                                HoverHandler { id: calTitleH }
-                                                TapHandler { onTapped: { calRoot.refDate = new Date(); calRoot.today = new Date() } }
-                                            }
-
-                                            Rectangle {
-                                                Layout.preferredWidth: 32; Layout.preferredHeight: 32
-                                                radius: 8
-                                                color: "transparent"
-                                                Rectangle {
-                                                    anchors.fill: parent; radius: parent.radius
-                                                    color: Style.surface_container_highest
-                                                    opacity: calPrevH.hovered ? 1.0 : 0.0
-                                                    Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                                                    
-                                                }
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: Icons.calendarPrev
-                                                    font.pixelSize: Config.fontSizeBody; font.family: Icons.font
-                                                    color: Style.on_surface_variant
-                                                }
-                                                HoverHandler { id: calPrevH }
-                                                TapHandler   { onTapped: calRoot.prevMonth() }
-                                            }
-
-                                            Rectangle {
-                                                Layout.preferredWidth: 32; Layout.preferredHeight: 32
-                                                radius: 8
-                                                color: "transparent"
-                                                Rectangle {
-                                                    anchors.fill: parent; radius: parent.radius
-                                                    color: Style.surface_container_highest
-                                                    opacity: calNextH.hovered ? 1.0 : 0.0
-                                                    Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                                                    
-                                                }
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: Icons.chevronRight
-                                                    font.pixelSize: Config.fontSizeBody; font.family: Icons.font
-                                                    color: Style.on_surface_variant
-                                                }
-                                                HoverHandler { id: calNextH }
-                                                TapHandler   { onTapped: calRoot.nextMonth() }
-                                            }
-                                        }
-                                    }
-
-                                    // Cabecera días — inicial simple M3
-                                    Row {
-                                        width: parent.width
-                                        Repeater {
-                                            model: ["L","M","M","J","V","S","D"]
-                                            Text {
-                                                text: modelData
-                                                width: Math.floor(parent.width / 7)
-                                                horizontalAlignment: Text.AlignHCenter
-                                                font.pixelSize: Config.fontSizeCaption
-                                                font.weight: Config.fontWeightMedium
-                                                font.family: Config.uiFont
-                                                color: index >= 5 ? Style.primary : Style.on_surface_variant
-                                            }
-                                        }
-                                    }
-
-                                    // Grilla días
-                                    Grid {
-                                        id: calGrid
-                                        width: parent.width
-                                        columns: 7
-
-                                        property int offset: {
-                                            var d = new Date(calRoot.year, calRoot.month, 1).getDay()
-                                            return (d + 6) % 7
-                                        }
-                                        property int daysInMonth: new Date(calRoot.year, calRoot.month + 1, 0).getDate()
-                                        property int daysInPrevMonth: new Date(calRoot.year, calRoot.month, 0).getDate()
-                                        readonly property real cellW: Math.floor(width / 7)
-
-                                        Repeater {
-                                            model: 42
-                                            delegate: Item {
-                                                id: cell
-                                                width: calGrid.cellW; height: 32
-
-                                                // Mes relativo: -1 = mes anterior, 0 = actual, 1 = siguiente
-                                                readonly property int rel: index < calGrid.offset ? -1
-                                                    : index < calGrid.offset + calGrid.daysInMonth ? 0 : 1
-                                                readonly property int day: rel === 0
-                                                    ? index - calGrid.offset + 1
-                                                    : rel === -1
-                                                    ? calGrid.daysInPrevMonth - (calGrid.offset - 1 - index)
-                                                    : index - (calGrid.offset + calGrid.daysInMonth) + 1
-                                                readonly property bool weekend: (index % 7) >= 5
-                                                readonly property bool isToday: rel === 0
-                                                    && day           === calRoot.today.getDate()
-                                                    && calRoot.month === calRoot.today.getMonth()
-                                                    && calRoot.year  === calRoot.today.getFullYear()
-
-                                                // Día de otro mes: sin bg (se ve el fondo de la tarjeta)
-                                                Rectangle {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 1
-                                                    radius: 6
-                                                    color: Style.surface_container
-                                                    visible: false
-                                                    Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                                                }
-
-                                                // Día del mes: bg elevado sutil (sin animación:
-                                                // al cambiar de mes el fade delato las celdas)
-                                                Rectangle {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 1
-                                                    radius: 6
-                                                    color: Style.surface_container_highest
-                                                    opacity: cell.rel === 0 && !cell.isToday ? 0.35 : 0.0
-                                                }
-
-                                                // Hoy — bg de toda la celda con padding chico
-                                                Rectangle {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 2
-                                                    radius: 6
-                                                    color: Style.primary
-                                                    opacity: cell.isToday ? 1.0 : 0.0
-                                                }
-
-                                                // Hover (nunca tapa al "hoy")
-                                                Rectangle {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 1
-                                                    radius: 6
-                                                    color: Style.surface_container_highest
-                                                    opacity: cellH.hovered && !cell.isToday && cell.rel === 0 ? 1.0 : 0.0
-                                                    Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-                                                }
-
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: cell.day
-                                                    color: cell.isToday    ? Style.on_primary
-                                                         : cell.rel !== 0  ? Style.on_surface_variant
-                                                         : cell.weekend    ? Style.primary
-                                                         : Style.on_surface
-                                                    opacity: cell.rel === 0 ? 1.0 : 0.55
-                                                    font.pixelSize: Config.fontSizeLabel
-                                                    font.weight: cell.isToday ? Config.fontWeightBold : Font.Normal
-                                                    font.family: Config.uiFont
-                                                }
-
-                                                HoverHandler { id: cellH }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // ── Pomodoro ──────────────────────────────
-                            Item {
-                                id: pomoView
-                                anchors.fill: parent
-                                readonly property bool active: calPomoCard.mode === "pomodoro"
-                                property real progress: active ? 1.0 : 0.0
-                                opacity: progress
-                                visible: progress > 0.01
-                                Behavior on progress {
-                                    NumberAnimation {
-                                        duration: 180
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
-
-                                Flickable {
-                                    id: pomoFlick
-                                    anchors.fill: parent
-                                    contentWidth: width
-                                    contentHeight: Math.max(height, pomoPanel.implicitHeight)
-                                    clip: true
-                                    boundsBehavior: Flickable.StopAtBounds
-                interactive: contentHeight > height && !root._wifiListOpen
-
-                                    PomodoroPanel {
-                                        id: pomoPanel
-                                        width: pomoFlick.width
-                                        height: Math.max(pomoFlick.height, implicitHeight)
-                                        active: root.viewOpen && calPomoCard.mode === "pomodoro"
-                                    }
-                                }
-                            }
-                             
-                        }
-                    }
 
                 }
 
@@ -1205,6 +1025,375 @@ Item {
                 icon: Icons.wifiOff
                 title: "WiFi apagado"
                 subtitle: "Activalo para ver las redes disponibles"
+            }
+        }
+    }
+
+    Component {
+        id: devCardComp
+        // Ficha del dispositivo Android (kcd, en vivo).
+        Rectangle {
+            id: devCard
+            height: parent.height
+            radius: 12
+            color: Style.surface_container_low
+            clip: true
+
+            readonly property var d: KcdState.device
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14; anchors.rightMargin: 14
+                anchors.topMargin: 12
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "Tipo"
+                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
+                        color: Style.on_surface_variant
+                    }
+                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+                    Text {
+                        text: devCard.d ? devCard.d.type : "—"
+                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
+                        color: Style.on_surface
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "ID"
+                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
+                        color: Style.on_surface_variant
+                    }
+                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+                    Text {
+                        Layout.preferredWidth: 240
+                        text: devCard.d ? devCard.d.id : "—"
+                        font.pixelSize: Config.fontSizeCaption; font.family: Config.ibmPlexMono
+                        color: Style.on_surface
+                        elide: Text.ElideMiddle
+                        maximumLineCount: 1
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "Batería"
+                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
+                        color: Style.on_surface_variant
+                    }
+                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+                    Text {
+                        text: devCard.d
+                            ? ((devCard.d.charge >= 0 ? devCard.d.charge + "%" : "—")
+                               + (devCard.d.charging ? " · cargando" : ""))
+                            : "—"
+                        font.pixelSize: Config.fontSizeLabelSm; font.weight: Config.fontWeightMedium
+                        font.family: Config.uiFont
+                        color: Style.on_surface
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: devEmptyComp
+        Rectangle {
+            height: parent.height
+            radius: 12
+            color: Style.surface_container_low
+
+            EmptyState {
+                anchors.centerIn: parent
+                width: parent.width - 32
+                icon: Icons.cellphone
+                title: "Sin dispositivo"
+                subtitle: "El Android no está conectado (kcd)"
+            }
+        }
+    }
+
+    Component {
+        id: pomoComp
+        // Submenú pomodoro (acordeón bajo la fila de tiles).
+        Rectangle {
+            height: parent.height
+            radius: 12
+            color: Style.surface_container_low
+            clip: true
+
+            Flickable {
+                id: pomoFlick
+                anchors.fill: parent
+                contentWidth: width
+                contentHeight: Math.max(height, pomoPanel.implicitHeight)
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                interactive: contentHeight > height && !root._wifiListOpen
+
+                PomodoroPanel {
+                    id: pomoPanel
+                    width: pomoFlick.width
+                    height: Math.max(pomoFlick.height, implicitHeight)
+                    active: root.viewOpen && root._pomoOpen
+                }
+            }
+        }
+    }
+
+    Component {
+        id: calComp
+        // Submenú calendario (acordeón bajo la fila de tiles).
+        // "Hoy" se refresca al abrir el CC: el Loader se pre-crea entonces
+        // (y se destruye al cerrar el CC), como hacía la card vieja.
+        Rectangle {
+            height: parent.height
+            radius: 12
+            color: Style.surface_container_low
+            clip: true
+
+            Component.onCompleted: calRoot.refreshToday()
+
+            Column {
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 6
+
+                QtObject {
+                    id: calRoot
+                    property var refDate: new Date()
+                    property int year:  refDate.getFullYear()
+                    property int month: refDate.getMonth()
+                    // _rev fuerza a recalcular "today" cuando el
+                    // panel se abre (ver refreshToday()).
+                    property int _rev: 0
+                    property var today: { _rev; return new Date() }
+
+                    function refreshToday() { _rev++ }
+
+                    function prevMonth() {
+                        var d = new Date(refDate); d.setDate(1); d.setMonth(d.getMonth() - 1); refDate = d
+                    }
+                    function nextMonth() {
+                        var d = new Date(refDate); d.setDate(1); d.setMonth(d.getMonth() + 1); refDate = d
+                    }
+                }
+
+                // Titular M3 Expressive + navegación
+                Item {
+                    width: parent.width
+                    height: 40
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 4
+
+                        Column {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 0
+                            Text {
+                                text: {
+                                    var m = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                                             "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+                                    return m[calRoot.month]
+                                }
+                                font.pixelSize: Config.fontSizeTitle
+                                font.weight: Config.fontWeightBold
+                                font.family: Config.uiFont
+                                color: Style.on_surface
+                            }
+                            Text {
+                                text: calRoot.year
+                                font.pixelSize: Config.fontSizeCaption
+                                font.family: Config.uiFont
+                                color: Style.on_surface_variant
+                            }
+                        }
+
+                        // Pill "Hoy" — visible fuera del mes actual
+                        Item {
+                            Layout.preferredWidth: 58
+                            Layout.preferredHeight: 30
+                            visible: calRoot.month !== calRoot.today.getMonth()
+                                || calRoot.year !== calRoot.today.getFullYear()
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 8
+                                color: Style.secondary_container
+                                opacity: calTitleH.hovered ? 1.0 : 0.75
+                                Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "Hoy"
+                                    font.pixelSize: Config.fontSizeLabelSm
+                                    font.weight: Config.fontWeightMedium
+                                    font.family: Config.uiFont
+                                    color: Style.on_secondary_container
+                                }
+                            }
+                            HoverHandler { id: calTitleH }
+                            TapHandler { onTapped: { calRoot.refDate = new Date(); calRoot.today = new Date() } }
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 32; Layout.preferredHeight: 32
+                            radius: 8
+                            color: "transparent"
+                            Rectangle {
+                                anchors.fill: parent; radius: parent.radius
+                                color: Style.surface_container_highest
+                                opacity: calPrevH.hovered ? 1.0 : 0.0
+                                Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+
+                            }
+                            Text {
+                                anchors.centerIn: parent
+                                text: Icons.calendarPrev
+                                font.pixelSize: Config.fontSizeBody; font.family: Icons.font
+                                color: Style.on_surface_variant
+                            }
+                            HoverHandler { id: calPrevH }
+                            TapHandler   { onTapped: calRoot.prevMonth() }
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 32; Layout.preferredHeight: 32
+                            radius: 8
+                            color: "transparent"
+                            Rectangle {
+                                anchors.fill: parent; radius: parent.radius
+                                color: Style.surface_container_highest
+                                opacity: calNextH.hovered ? 1.0 : 0.0
+                                Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+
+                            }
+                            Text {
+                                anchors.centerIn: parent
+                                text: Icons.chevronRight
+                                font.pixelSize: Config.fontSizeBody; font.family: Icons.font
+                                color: Style.on_surface_variant
+                            }
+                            HoverHandler { id: calNextH }
+                            TapHandler   { onTapped: calRoot.nextMonth() }
+                        }
+                    }
+                }
+
+                // Cabecera días — inicial simple M3
+                Row {
+                    width: parent.width
+                    Repeater {
+                        model: ["L","M","M","J","V","S","D"]
+                        Text {
+                            text: modelData
+                            width: Math.floor(parent.width / 7)
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: Config.fontSizeCaption
+                            font.weight: Config.fontWeightMedium
+                            font.family: Config.uiFont
+                            color: index >= 5 ? Style.primary : Style.on_surface_variant
+                        }
+                    }
+                }
+
+                // Grilla días
+                Grid {
+                    id: calGrid
+                    width: parent.width
+                    columns: 7
+
+                    property int offset: {
+                        var d = new Date(calRoot.year, calRoot.month, 1).getDay()
+                        return (d + 6) % 7
+                    }
+                    property int daysInMonth: new Date(calRoot.year, calRoot.month + 1, 0).getDate()
+                    property int daysInPrevMonth: new Date(calRoot.year, calRoot.month, 0).getDate()
+                    readonly property real cellW: Math.floor(width / 7)
+
+                    Repeater {
+                        model: 42
+                        delegate: Item {
+                            id: cell
+                            width: calGrid.cellW; height: 32
+
+                            // Mes relativo: -1 = mes anterior, 0 = actual, 1 = siguiente
+                            readonly property int rel: index < calGrid.offset ? -1
+                                : index < calGrid.offset + calGrid.daysInMonth ? 0 : 1
+                            readonly property int day: rel === 0
+                                ? index - calGrid.offset + 1
+                                : rel === -1
+                                ? calGrid.daysInPrevMonth - (calGrid.offset - 1 - index)
+                                : index - (calGrid.offset + calGrid.daysInMonth) + 1
+                            readonly property bool weekend: (index % 7) >= 5
+                            readonly property bool isToday: rel === 0
+                                && day           === calRoot.today.getDate()
+                                && calRoot.month === calRoot.today.getMonth()
+                                && calRoot.year  === calRoot.today.getFullYear()
+
+                            // Día de otro mes: sin bg (se ve el fondo de la tarjeta)
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                radius: 6
+                                color: Style.surface_container
+                                visible: false
+                                Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+                            }
+
+                            // Día del mes: bg elevado sutil (sin animación:
+                            // al cambiar de mes el fade delato las celdas)
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                radius: 6
+                                color: Style.surface_container_highest
+                                opacity: cell.rel === 0 && !cell.isToday ? 0.35 : 0.0
+                            }
+
+                            // Hoy — bg de toda la celda con padding chico
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 2
+                                radius: 6
+                                color: Style.primary
+                                opacity: cell.isToday ? 1.0 : 0.0
+                            }
+
+                            // Hover (nunca tapa al "hoy")
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                radius: 6
+                                color: Style.surface_container_highest
+                                opacity: cellH.hovered && !cell.isToday && cell.rel === 0 ? 1.0 : 0.0
+                                Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: cell.day
+                                color: cell.isToday    ? Style.on_primary
+                                     : cell.rel !== 0  ? Style.on_surface_variant
+                                     : cell.weekend    ? Style.primary
+                                     : Style.on_surface
+                                opacity: cell.rel === 0 ? 1.0 : 0.55
+                                font.pixelSize: Config.fontSizeLabel
+                                font.weight: cell.isToday ? Config.fontWeightBold : Font.Normal
+                                font.family: Config.uiFont
+                            }
+
+                            HoverHandler { id: cellH }
+                        }
+                    }
+                }
             }
         }
     }
