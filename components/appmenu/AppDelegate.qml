@@ -35,7 +35,7 @@ Item {
     readonly property bool isRecent: itemData.isRecent === true
 
     Rectangle {
-        anchors { fill: parent; topMargin: 1; bottomMargin: 1 }
+        anchors.fill: parent
         radius: 10
         property bool ph: false
         color: "transparent"

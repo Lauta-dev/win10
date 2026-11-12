@@ -211,6 +211,8 @@ Item {
             highlightDuration: 180
             accent: root.tint
             highlightBg: root.focusBg
+            // Filas flush: sin separación entre tracks.
+            listView.spacing: 0
             emptyIcon: !MpdState.daemonRunning ? Icons.power : Icons.question
             emptyTitle: !MpdState.daemonRunning ? "MPD detenido" : "Sin resultados"
             emptySubtitle: !MpdState.daemonRunning ? "El daemon no está corriendo" : "Intentá otra búsqueda"

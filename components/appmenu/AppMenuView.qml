@@ -40,6 +40,8 @@ Item {
         showSearch: true; searchPlaceholder: "Buscar aplicaciones…"
         inverted: true; highlightDuration: 180
         highlightBg: Qt.alpha(Style.primary, 0.1)
+        // Apps flush: sin separación entre filas.
+        listView.spacing: 0
         emptyIcon: Icons.question
         emptyTitle: "Sin resultados"
         emptySubtitle: "Intentá otra búsqueda"

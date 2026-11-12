@@ -35,6 +35,8 @@ Item {
         showSearchCounter: true
         inverted: true; highlightDuration: 180
         highlightBg: Qt.alpha(Style.primary, 0.1)
+        // Filas flush: sin separación entre entradas.
+        listView.spacing: 0
         emptyIcon: Icons.clipboard
         emptyTitle: "Portapapeles vacío"
         emptySubtitle: "Copiá algo para verlo acá"
