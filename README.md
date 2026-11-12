@@ -35,7 +35,7 @@
 | **🚀 Launcher** | AppMenu con búsqueda fuzzy, recientes, pineados y comandos rápidos (`>b`, `>ia`, `>sf`) · historial de portapapeles (cliphist) con búsqueda estilo fzf y previews de imagen. |
 | **🧮 Calculadora** | Panel propio con resultado en vivo (evaluación async en Go) y fracciones exactas apiladas (num/den + gráfico de torta). |
 | **🎧 Música** | MPRIS multi-player (barra + popup) · MPD con cola sobre `PanelList`, agregados recientes y cover full-bleed tintado. |
-| **⚙️ Centro de control** | Usuario, tiles de ajustes, brillo, calendario/notificaciones, WiFi y pomodoro. |
+| **⚙️ Centro de control** | Usuario, tiles de ajustes, brillo, calendario/notificaciones, WiFi, pomodoro y dispositivo Android vía kcd (nombre + batería en tiempo real). |
 | **🌗 Ajustes** | Ventana SSD con drawer de tabs: apariencia (matugen desde el wallpaper), monitores, tema oscuro y modo nocturno. |
 | **El resto** | 🔔 OSD único (volumen/brillo/power) · 📝 notas con autoguardado y slash commands · 🔐 diálogo polkit. |
 
@@ -148,6 +148,7 @@ win10/
 │   ├── StartmenuState · AppLaunchState · OpenAppsState
 │   │                               # Índice de apps · lanzar · ventanas abiertas.
 │   ├── WifiState · MonitorState · ThemeState · WallpaperState
+│   ├── KcdState                      # Dispositivo Android vía kcd (watch --json en vivo).
 │   ├── PomodoroState · NotesState · PolkitState · DirBrowserState
 │   └── qmldir
 │

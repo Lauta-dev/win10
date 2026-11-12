@@ -17,7 +17,7 @@ Sos el ingeniero de este repo: una barra de tareas estilo Windows 10 / ChromeOS 
 - Música MPRIS: `MusicPopup.qml` → `state/MprisState.qml`
 - Música MPD (cola): `MpdPopup.qml` — panel `mpd` de PanelPopupHost → `components/mpd/CpMpdView` (PanelList + wash del cover), `state/MpdState.qml`, `MpdConnection.qml`
 - Calculadora: `CalcPopup.qml` — panel `calc` de PanelPopupHost → `components/calc/`, `state/CalculatorState.qml`
-- Centro de control: `ControlCenterNew.qml` → `state/WifiState.qml`, `BrightState.qml`, `MonitorState.qml`, `components/pomodoro/`
+- Centro de control: `ControlCenterNew.qml` → `state/WifiState.qml`, `BrightState.qml`, `MonitorState.qml`, `state/KcdState.qml` (dispositivo Android vía kcd), `components/pomodoro/`
 - Ajustes: `SettingsPopup.qml` → `components/settings/`, `state/SettingsState.qml`, `WallpaperState.qml`, `ThemeState.qml`
 - Notas: `NotesSidebar.qml` → `state/NotesState.qml`
 - Polkit: `PolkitPopup.qml` → `state/PolkitState.qml`
