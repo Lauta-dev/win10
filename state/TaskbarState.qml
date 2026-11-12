@@ -50,7 +50,7 @@ Singleton {
     // Un solo slot para los paneles grandes: exclusividad last-wins — al
     // abrir uno, el anterior se limpia al instante (sin wipe de salida).
     // Cambiar entre paneles con la superficie abierta cambia el contenido
-    // en seco (sin re-animar). "" | "launcher" | "jumplist" | "music" | "controlcenter" | "mpd"
+    // en seco (sin re-animar). "" | "launcher" | "jumplist" | "music" | "controlcenter" | "mpd" | "calc" | "keybinds"
     property string panel: ""
     function openPanel(name: string)  { panel = name }
     function closePanel(name) {

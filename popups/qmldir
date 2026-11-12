@@ -5,6 +5,7 @@ CalcPopup 1.0 CalcPopup.qml
 MpdPopup 1.0 MpdPopup.qml
 ControlCenterNew 1.0 ControlCenterNew.qml
 MusicPopup 1.0 MusicPopup.qml
+KeybindsPopup 1.0 KeybindsPopup.qml
 
 OsdSliderPopup 1.0 OsdSliderPopup.qml
 PolkitPopup 1.0 PolkitPopup.qml

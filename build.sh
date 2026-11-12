@@ -24,6 +24,10 @@ cd theming && go build -o ../../bin/matugen-apply ./cmd/matugen-apply; cd ..
 echo "Construyendo list-dirs..."
 cd list-dirs && go build -o ../../bin/list-dirs; cd ..
 
+# Atajos de labwc → JSON para el panel keybinds
+echo "Construyendo keybinds..."
+cd keybinds && go build -o ../../bin/keybinds; cd ..
+
 echo "Construyendo list-monitors..."
 cd list-monitors && go build -o ../../bin/list-monitors; cd ..
 

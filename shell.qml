@@ -21,6 +21,7 @@ ShellRoot {
     PowerIpc       {}
     AppMenuIpc     {}
     CalcIpc        {}
+    KeybindsIpc    {}
     ClipboardIpc   {}
     NotesIpc       {}
 

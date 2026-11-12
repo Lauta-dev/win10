@@ -18,8 +18,9 @@ Item {
         function close()       { TaskbarState._hideLauncher() }
         function openClipboard() { TaskbarState._showLauncher("clip") }
         function openStartmenu() { root._toggleApp() }
-        // Paneles de PanelPopupHost: MpdPopup (cola MPD) y CalcPopup.
-        // El target "calc" también tiene toggle/open/close (CalcIpc).
+        // Paneles de PanelPopupHost: MpdPopup (cola MPD), CalcPopup y la
+        // hoja de atajos. Los targets "calc"/"keybinds" también tienen
+        // toggle/open/close (CalcIpc / KeybindsIpc).
         function openMpd(): string {
             if (TaskbarState.panel === "mpd") {
                 TaskbarState.closePanel("mpd")
@@ -38,5 +39,13 @@ Item {
             return "opened calc"
         }
         function openCalculator(): string { return openCalc() }
+        function openKeybinds(): string {
+            if (TaskbarState.panel === "keybinds") {
+                TaskbarState.closePanel("keybinds")
+                return "closed"
+            }
+            TaskbarState.openPanel("keybinds")
+            return "opened keybinds"
+        }
     }
 }
