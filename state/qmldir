@@ -24,7 +24,6 @@ singleton NotesState 1.0 NotesState.qml
 
 singleton Style 1.0 Style.qml
 singleton CalculatorState 1.0 CalculatorState.qml
-singleton KcdState 1.0 KcdState.qml
 singleton KeybindsState 1.0 KeybindsState.qml
 
 # Clipboard helpers (no singleton)

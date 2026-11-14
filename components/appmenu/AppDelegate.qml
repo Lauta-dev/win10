@@ -30,8 +30,10 @@ Item {
     }
 
     readonly property bool itemHasDescription: !isCategory && (itemData.comment ?? "") !== ""
-    // Pineada (match fuzzy: el id .desktop puede diferir del appId Wayland)
-    readonly property bool isAppPinned: !isCategory && !isSpecial && (itemData.isPinned === true)
+    // Pineada: binding en vivo a TaskbarState (el badge se refresca in place
+    // al pin/unpin sin reconstruir la lista).
+    readonly property bool isAppPinned: !isCategory && !isSpecial
+        && TaskbarState.isPinnedFuzzy(itemData.id ?? "")
     readonly property bool isRecent: itemData.isRecent === true
 
     Rectangle {

@@ -41,51 +41,44 @@ Item {
     // delegates leen el objeto vivo). El swap del modelo lo hace la lista
     // (wifiListComp) para preservar el scroll al aparecer/desaparecer redes.
     // ── Tiles M3 solo-ícono: 0 wifi, 1 pantalla (menú de layouts),
-    // 2 dark/night. Las funciones se re-evalúan solas (QML rastrea las
+    // 2 dark/night, 3 pomodoro, 4 calendario, 5 submenú (fila
+    // full-width). Las funciones se re-evalúan solas (QML rastrea las
     // deps usadas adentro).
     function _tileOn(k) {
         if (k === 0) return _wifiEnabled
-        if (k === 3) return KcdState.connected
-        if (k === 4) return PomodoroState.isRunning
-        if (k === 5) return root._calOpen
+        if (k === 3) return PomodoroState.isRunning
+        if (k === 4) return root._calOpen
         return root._layVisible
     }
     function _tileIcon(k) {
         if (k === 0) return _wifiConnected ? Icons.wifi : Icons.wifiOff
-        if (k === 3) return KcdState.connected ? Icons.cellphone : Icons.cellphoneOff
-        if (k === 4) return PomodoroState.isRunning ? Icons.musicPause : Icons.musicPlay
-        if (k === 5) return Icons.calendar
+        if (k === 3) return PomodoroState.isRunning ? Icons.musicPause : Icons.musicPlay
+        if (k === 4) return Icons.calendar
         return Icons.display
     }
     function _tileLabel(k) {
         if (k === 0) return root._wifiConnected ? root._connectedName : "WiFi"
-        if (k === 3) return KcdState.connected ? KcdState.device.name : "Sin dispositivo"
-        if (k === 4) {
+        if (k === 3) {
             if (PomodoroState.timerState === "idle") return "Pomodoro"
             var t = PomodoroState.timeRemaining
             var m = Math.floor(t / 60), s = t % 60
             return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
         }
-        if (k === 5) return "Cal"
+        if (k === 4) return "Cal"
         return MonitorState.activeLayout === "dual" ? "Dual"
              : MonitorState.activeLayout === "monitor" ? "Monitor" : "Netbook"
     }
     function _tileRun(k, mouse) {
-        if (k === 4) {
+        if (k === 3) {
             // Abre/cierra el submenú del pomodoro (exclusivo con calendario).
             root._pomoOpen = !root._pomoOpen
             if (root._pomoOpen) root._calOpen = false
             return
         }
-        if (k === 5) {
+        if (k === 4) {
             // Abre/cierra el submenú del calendario (exclusivo con pomodoro).
             root._calOpen = !root._calOpen
             if (root._calOpen) root._pomoOpen = false
-            return
-        }
-        if (k === 3) {
-            // Abre/cierra la ficha del dispositivo (batería, id, tipo).
-            root._devOpen = !root._devOpen
             return
         }
         if (k === 0) {
@@ -158,20 +151,10 @@ Item {
 
     // Lista WiFi expandida debajo del tile (acordeón)
     property bool _wifiListOpen: false
-    // Ficha del dispositivo Android expandida bajo el tile (acordeón)
-    property bool _devOpen: false
     // Submenús pomodoro/calendario: acordeones full-width bajo la fila de
     // tiles, exclusivos entre sí (abrir uno cierra el otro).
     property bool _pomoOpen: false
     property bool _calOpen: false
-    // Glifo de batería por nivel (con bolt si está cargando).
-    readonly property string _devBattIcon: {
-        if (!KcdState.connected) return ""
-        if (KcdState.charging) return Icons.batteryCharging
-        if (KcdState.battery >= 60) return Icons.batteryHigh
-        if (KcdState.battery >= 30) return Icons.batteryMedium
-        return Icons.batteryLow
-    }
 
     // Submenú inline de contraseña estilo KDE (ssid expandido)
     property string _expandedSsid: ""
@@ -180,7 +163,7 @@ Item {
 
     // "Hoy" del calendario se recalcula solo al abrir el panel (no con un
     // timer): si la shell lleva días corriendo, al abrirlo ya está al día.
-    onViewOpenChanged: { if (viewOpen) { MonitorState.refresh(); BrightState.sync(); KcdState.start() } else { _ctxVisible = false; _layVisible = false; _wifiListOpen = false; _devOpen = false; _pomoOpen = false; _calOpen = false; _expandedSsid = ""; _pwdDrafts = {}; WifiState.inlineSsid = ""; WifiState.stopScan(); KcdState.stop() } }
+    onViewOpenChanged: { if (viewOpen) { MonitorState.refresh(); BrightState.sync() } else { _ctxVisible = false; _layVisible = false; _wifiListOpen = false; _pomoOpen = false; _calOpen = false; _expandedSsid = ""; _pwdDrafts = {}; WifiState.inlineSsid = ""; WifiState.stopScan() } }
 
     Connections {
         target: WifiState
@@ -194,7 +177,7 @@ Item {
     // de sus partes (sin animación): piso = vista colapsada exacta.
     readonly property real _maxH: Screen.height - Config.taskbarHeight - 20
     readonly property real visualHeight: Math.min(ccFlickable.contentHeight + 2, _maxH)
-    // Alto fijo para las listas de sub-vistas (wifi/batería): ventana más
+    // Alto fijo para las listas de sub-vistas (wifi): ventana más
     // alta al abrir un tile. Fijo (no sigue al alto animado) para evitar
     // loops de binding con la altura animada.
     readonly property real subViewListH: Math.min(480, _maxH - 240)
@@ -239,19 +222,18 @@ Item {
 
                         Repeater {
                             // 0 wifi, 1 pantalla (layouts), 2 dark/night,
-                            // 3 dispositivo Android (kcd), 4 pomodoro,
-                            // 5 calendario, 6 submenú pomo/cal (fila full-width).
-                            model: 7
+                            // 3 pomodoro, 4 calendario, 5 submenú
+                            // pomo/cal (fila full-width).
+                            model: 6
                             delegate: Item {
                                 id: m3tile
                                 readonly property int kind: index
                                 readonly property bool m3on: root._tileOn(kind)
                                 property real wifiListAnimH: 0
-                                property real devAnimH: 0
                                 property real subAnimH: 0
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: kind === 6 ? subAnimH : 64 + wifiListAnimH + devAnimH
-                                Layout.columnSpan: kind === 0 || kind === 3 || kind === 6 ? 2 : 1
+                                Layout.preferredHeight: kind === 5 ? subAnimH : 64 + wifiListAnimH
+                                Layout.columnSpan: kind === 0 || kind === 5 ? 2 : 1
 
                                 NumberAnimation {
                                     id: wifiListAnim
@@ -261,29 +243,12 @@ Item {
                                     easing.type: Easing.OutCubic
                                 }
 
-                                    Connections {
+                                Connections {
                                     target: root
                                     function on_WifiListOpenChanged() {
                                         wifiListAnim.from = wifiListAnimH
                                         wifiListAnim.to = kind === 0 && root._wifiListOpen ? Math.min(300, root.subViewListH) : 0
                                         wifiListAnim.start()
-                                    }
-                                }
-
-                                NumberAnimation {
-                                    id: devAnim
-                                    target: m3tile
-                                    property: "devAnimH"
-                                    duration: 300
-                                    easing.type: Easing.OutCubic
-                                }
-
-                                Connections {
-                                    target: root
-                                    function on_DevOpenChanged() {
-                                        devAnim.from = devAnimH
-                                        devAnim.to = kind === 3 && root._devOpen ? 104 : 0
-                                        devAnim.start()
                                     }
                                 }
 
@@ -295,19 +260,19 @@ Item {
                                     easing.type: Easing.OutCubic
                                 }
 
-                                // Fila del submenú (kind 6): la altura depende
+                                // Fila del submenú (kind 5): la altura depende
                                 // del exclusivo activo (240 pomo / 300 cal).
                                 // Guard por kind: los demás tiles ignoran.
                                 Connections {
                                     target: root
                                     function on_PomoOpenChanged() {
-                                        if (kind !== 6) return
+                                        if (kind !== 5) return
                                         subAnim.from = subAnimH
                                         subAnim.to = root._pomoOpen ? 240 : (root._calOpen ? 300 : 0)
                                         subAnim.start()
                                     }
                                     function on_CalOpenChanged() {
-                                        if (kind !== 6) return
+                                        if (kind !== 5) return
                                         subAnim.from = subAnimH
                                         subAnim.to = root._calOpen ? 300 : (root._pomoOpen ? 240 : 0)
                                         subAnim.start()
@@ -316,8 +281,7 @@ Item {
 
                                 Component.onCompleted: {
                                     wifiListAnimH = kind === 0 && root._wifiListOpen ? Math.min(300, root.subViewListH) : 0
-                                    devAnimH = kind === 3 && root._devOpen ? 104 : 0
-                                    subAnimH = kind === 6 ? (root._pomoOpen ? 240 : root._calOpen ? 300 : 0) : 0
+                                    subAnimH = kind === 5 ? (root._pomoOpen ? 240 : root._calOpen ? 300 : 0) : 0
                                 }
 
                                 Column {
@@ -325,11 +289,11 @@ Item {
                                     spacing: 0
 
                                     // Tile actual (altura fija 64). En la fila
-                                    // submenú (kind 6) se omite por completo:
+                                    // submenú (kind 5) se omite por completo:
                                     // el Column salta los hijos invisibles.
                                     Item {
                                         id: tileContent
-                                        visible: kind !== 6
+                                        visible: kind !== 5
                                         width: parent.width
                                         height: 64
 
@@ -379,7 +343,7 @@ Item {
 
                                                 Text {
                                                     anchors.verticalCenter: parent.verticalCenter
-                                                    width: parent.width - 52 - (kind === 3 ? 104 : 0)
+                                                    width: parent.width - 52
                                                     text: root._tileLabel(m3tile.kind)
                                                     elide: Text.ElideRight
                                                     maximumLineCount: 1
@@ -388,33 +352,6 @@ Item {
                                                     font.family: Config.uiFont
                                                     color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
                                                     Behavior on color { ColorAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                                                }
-
-                                                // Batería del dispositivo (sólo kind 3), en vivo vía kcd.
-                                                Item {
-                                                    visible: kind === 3
-                                                    width: kind === 3 ? 92 : 0
-                                                    height: parent.height
-
-                                                    Row {
-                                                        anchors.centerIn: parent
-                                                        spacing: 4
-                                                        visible: KcdState.connected
-
-                                                        Text {
-                                                            text: root._devBattIcon
-                                                            font.pixelSize: Config.fontSizeIcon
-                                                            font.family: Icons.font
-                                                            color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
-                                                        }
-                                                        Text {
-                                                            text: KcdState.battery >= 0 ? KcdState.battery + "%" : "—"
-                                                            font.pixelSize: Config.fontSizeBodySm
-                                                            font.weight: Config.fontWeightMedium
-                                                            font.family: Config.uiFont
-                                                            color: m3tile.m3on ? Style.on_primary_container : Style.on_surface_variant
-                                                        }
-                                                    }
                                                 }
                                             }
 
@@ -528,7 +465,7 @@ Item {
                                         }
 
                                         // Zona del ícono (sólo tile pomodoro,
-                                        // kind 4): pausa/reanuda sin abrir la
+                                        // kind 3): pausa/reanuda sin abrir la
                                         // vista. Encima de tileMouse para
                                         // quedarse el click.
                                         Mouse {
@@ -536,7 +473,7 @@ Item {
                                             anchors.top: parent.top
                                             anchors.bottom: parent.bottom
                                             width: 52
-                                            enabled: kind === 4
+                                            enabled: kind === 3
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
                                                 if (PomodoroState.isRunning) PomodoroState.pause()
@@ -559,22 +496,7 @@ Item {
                                         }
                                     }
 
-                                    // Ficha del dispositivo Android debajo del tile
-                                    // (sólo kind 3, acordeón).
-                                    Item {
-                                        id: devArea
-                                        width: parent.width
-                                        height: devAnimH
-                                        clip: true
-
-                                        Loader {
-                                            anchors.fill: parent
-                                            active: root._devOpen || devAnimH > 0
-                                            sourceComponent: KcdState.connected ? devCardComp : devEmptyComp
-                                        }
-                                    }
-
-                                    // Submenú pomodoro/calendario (kind 6):
+                                    // Submenú pomodoro/calendario (kind 5):
                                     // fila full-width del grid.
                                     // Vistas exclusivas superpuestas,
                                     // pre-creadas al abrir el CC (anti-lag).
@@ -583,7 +505,7 @@ Item {
                                         width: parent.width
                                         height: subAnimH
                                         clip: true
-                                        visible: kind === 6
+                                        visible: kind === 5
                                             && (root._pomoOpen || root._calOpen || subAnimH > 0)
 
                                         Item {
@@ -1025,96 +947,6 @@ Item {
                 icon: Icons.wifiOff
                 title: "WiFi apagado"
                 subtitle: "Activalo para ver las redes disponibles"
-            }
-        }
-    }
-
-    Component {
-        id: devCardComp
-        // Ficha del dispositivo Android (kcd, en vivo).
-        Rectangle {
-            id: devCard
-            height: parent.height
-            radius: 12
-            color: Style.surface_container_low
-            clip: true
-
-            readonly property var d: KcdState.device
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 14; anchors.rightMargin: 14
-                anchors.topMargin: 12
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: "Tipo"
-                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
-                        color: Style.on_surface_variant
-                    }
-                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
-                    Text {
-                        text: devCard.d ? devCard.d.type : "—"
-                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
-                        color: Style.on_surface
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: "ID"
-                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
-                        color: Style.on_surface_variant
-                    }
-                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
-                    Text {
-                        Layout.preferredWidth: 240
-                        text: devCard.d ? devCard.d.id : "—"
-                        font.pixelSize: Config.fontSizeCaption; font.family: Config.ibmPlexMono
-                        color: Style.on_surface
-                        elide: Text.ElideMiddle
-                        maximumLineCount: 1
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: "Batería"
-                        font.pixelSize: Config.fontSizeLabelSm; font.family: Config.uiFont
-                        color: Style.on_surface_variant
-                    }
-                    Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
-                    Text {
-                        text: devCard.d
-                            ? ((devCard.d.charge >= 0 ? devCard.d.charge + "%" : "—")
-                               + (devCard.d.charging ? " · cargando" : ""))
-                            : "—"
-                        font.pixelSize: Config.fontSizeLabelSm; font.weight: Config.fontWeightMedium
-                        font.family: Config.uiFont
-                        color: Style.on_surface
-                    }
-                }
-            }
-        }
-    }
-
-    Component {
-        id: devEmptyComp
-        Rectangle {
-            height: parent.height
-            radius: 12
-            color: Style.surface_container_low
-
-            EmptyState {
-                anchors.centerIn: parent
-                width: parent.width - 32
-                icon: Icons.cellphone
-                title: "Sin dispositivo"
-                subtitle: "El Android no está conectado (kcd)"
             }
         }
     }

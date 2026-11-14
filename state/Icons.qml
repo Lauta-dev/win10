@@ -181,12 +181,4 @@ Singleton {
     readonly property string wpFade:          "󰝥"
     readonly property string wpWave:          "󰞍"
     readonly property string wpOuter:         "󰉁"
-
-    // Device (kcd): MDI cellphone + baterías por nivel
-    readonly property string cellphone:       "󰄜"
-    readonly property string batteryHigh:     "󱊣"
-    readonly property string batteryMedium:   "󱊢"
-    readonly property string batteryLow:      "󱊡"
-    readonly property string batteryCharging: "󰂄"
-    readonly property string cellphoneOff:    "󰥐"
 }

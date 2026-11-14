@@ -11,9 +11,6 @@ Singleton {
     property var    allApps:      DesktopEntries.applications.values
     property var    filteredApps: []
     property string pendingFilter: ""
-    property int    _filterGen:   0
-    property int    _lastAppliedGen: -1
-    property var    _pinnedCache: {}
     property var    _recentSet: {}
 
     // ── Timer debounce ────────────────────────────────────────────────────────
@@ -42,20 +39,6 @@ Singleton {
         }
     }
 
-    function isPinnedCached(appId) {
-        if (!appId || appId === "") return false
-        if (!_pinnedCache) _pinnedCache = {}
-        var key = _filterGen + "\u0000" + appId
-        if (_pinnedCache[key] !== undefined) return _pinnedCache[key]
-        var pinned = TaskbarState.isPinned(appId)
-        if (!pinned) {
-            for (var i = 0; i < TaskbarState.pinnedApps.length; i++)
-                if (AppLaunchState._matches(TaskbarState.pinnedApps[i], appId)) { pinned = true; break }
-        }
-        _pinnedCache[key] = pinned
-        return pinned
-    }
-
     function isRecentCached(exec) {
         if (!exec) return false
         if (!_recentSet) _recentSet = {}
@@ -64,23 +47,21 @@ Singleton {
 
     function enrichApp(a) {
         var obj = toAppObject(a)
-        obj.isPinned = isPinnedCached(a.id || "")
         obj.isRecent = isRecentCached(a.execString || "")
         return obj
     }
 
     function setFilteredApps(arr) {
-        if (arr.length === filteredApps.length && _filterGen === _lastAppliedGen) {
-            var same = arr.length > 0
-            for (var i = 0; i < arr.length; i++) {
-                var a = arr[i], b = filteredApps[i]
-                var ka = a.id ?? a.path ?? a.cmd ?? ""
-                var kb = b.id ?? b.path ?? b.cmd ?? ""
-                if (ka !== kb || (a.name ?? "") !== (b.name ?? "")) { same = false; break }
-            }
-            if (same) return
+        // Solo reasigna si el contenido cambia: pin/unpin no debe reconstruir
+        // la lista (salta la selección y recrea todos los delegates).
+        var same = arr.length === filteredApps.length
+        for (var i = 0; same && i < arr.length; i++) {
+            var a = arr[i], b = filteredApps[i]
+            var ka = a.id ?? a.path ?? a.cmd ?? ""
+            var kb = b.id ?? b.path ?? b.cmd ?? ""
+            if (ka !== kb || (a.name ?? "") !== (b.name ?? "")) same = false
         }
-        _lastAppliedGen = _filterGen
+        if (same) return
         filteredApps = arr
     }
 
@@ -237,12 +218,6 @@ Singleton {
         target: TaskbarState
         function onShowLauncherChanged() {
             if (!TaskbarState.showLauncher) StartmenuState.stopSearchDaemon()
-        }
-        function onPinnedAppsChanged() {
-            _filterGen++
-            _pinnedCache = {}
-            // Re-aplica el filtro vigente para refrescar los badges de pin.
-            StartmenuState.filterApps(StartmenuState.pendingFilter)
         }
     }
 
